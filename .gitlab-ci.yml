@@ -4,22 +4,13 @@ include:
       file: "wf-containers.yaml"
 
 variables:
-    # We'll use the single-file case for these runs
-    NF_WORKFLOW_OPTS: "--fastq test_data/reads.fastq.gz"
     CI_FLAVOUR: "new" # set to "classic" for old-style CI
 
-
-# Remove this block in downstream templates
 conda-run:
-    tags: [] # no need for big ram
-singularity-run:
-    tags: [] # no need for big ram
-# end
+    rules:
+        - when: never
 
 docker-run:
-
-    # Remove this directive in downstream templates
-    tags: [] # no need for big ram
 
     # Define a 1D job matrix to inject a variable named MATRIX_NAME into
     #   the CI environment, we can use the value of MATRIX_NAME to determine
@@ -28,90 +19,21 @@ docker-run:
     #   the variables, but it is broken when using long strings! See CW-756
     parallel:
         matrix:
-            # TODO: do we really need to run all from s3?
             - MATRIX_NAME: [
-                "single-file", "single-file-s3",
-                "case01", "case01-s3",
-                "case02", "case02-s3",
-                "case03", "case03-s3",
-                "case04", "case04-s3",
-                "case05", "case05-s3",
-                "case06", "case06-s3",
-                "case07", "case07-s3",
-                "case08", "case08-s3",
-                "case20", "case20-include"]
+                "dorado",
+            ]
     rules:
+        - when: never
         # NOTE As we're overriding the rules block for the included docker-run
         #   we must redefine this CI_COMMIT_BRANCH rule to prevent docker-run
         #   being incorrectly scheduled for "detached merge request pipelines" etc.
-        - if: ($CI_COMMIT_BRANCH == null || $CI_COMMIT_BRANCH == "dev-template")
-          when: never
-        - if: $MATRIX_NAME == "single-file"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/reads.fastq.gz"
-        - if: $MATRIX_NAME == "single-file-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/reads.fastq.gz"
+        #- if: ($CI_COMMIT_BRANCH == null || $CI_COMMIT_BRANCH == "dev-template")
+        #  when: never
+        #- if: $MATRIX_NAME == "dorado"
+        #  variables:
+        #      NF_BEFORE_SCRIPT: "wget -qO demo_data.tar.gz https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/demo_data.tar.gz && tar -xzvf demo_data.tar.gz && cat demo_data/VERSION && rm demo_data.tar.gz"
+        #      NF_WORKFLOW_OPTS: "--input demo_data/input --ref demo_data/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta --basecaller_cfg '/home/epi2melabs/dna_r10.4.1_e8.2_400bps_hac@v3.5.2'"
 
-        - if: $MATRIX_NAME == "case01"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case01"
-        - if: $MATRIX_NAME == "case01-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case01"
-
-        - if: $MATRIX_NAME == "case02"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case02"
-        - if: $MATRIX_NAME == "case02-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case02"
-
-        - if: $MATRIX_NAME == "case03"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case03"
-        - if: $MATRIX_NAME == "case03-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case03"
-
-        - if: $MATRIX_NAME == "case04"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case04"
-        - if: $MATRIX_NAME == "case04-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case04"
-
-        - if: $MATRIX_NAME == "case05"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case05"
-        - if: $MATRIX_NAME == "case05-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case05"
-
-        - if: $MATRIX_NAME == "case06"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case06 --sample_sheet test_data/fastq_ingress/case06/sample_sheet.csv"
-        - if: $MATRIX_NAME == "case06-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case06 --sample_sheet s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case06/sample_sheet.csv"
-
-        - if: $MATRIX_NAME == "case07"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case07 --sample_sheet test_data/fastq_ingress/case07/sample_sheet.csv"
-        - if: $MATRIX_NAME == "case07-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case07 --sample_sheet s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case07/sample_sheet.csv"
-
-        - if: $MATRIX_NAME == "case08"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case08 --sample_sheet test_data/fastq_ingress/case08/sample_sheet.csv"
-        - if: $MATRIX_NAME == "case08-s3"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case08 --sample_sheet s3://ont-exd-int-s3-euwst1-epi2me-labs/wf-template/test_data/fastq_ingress/case08/sample_sheet.csv"
-
-        - if: $MATRIX_NAME == "case20"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case20"
-        - if: $MATRIX_NAME == "case20-include"
-          variables:
-              NF_WORKFLOW_OPTS: "--fastq test_data/fastq_ingress/case20 --unclassified true"
+aws-run:
+    rules:
+        - when: never
