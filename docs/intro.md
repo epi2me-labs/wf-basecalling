@@ -1,6 +1,7 @@
 ## Introduction
 
-This section of documentation typically contains an overview of the workflow in terms of motivation
-and bioinformatics methods, listing any key tools or algorithms employed, whilst also describing its
-range of use-cases and what a suitable input dataset should look like.
-
+This workflow introduces users to [`Dorado`](https://github.com/nanoporetech/dorado),
+our alpha-release basecaller. `dorado` is still under active development and
+has been released for evaluation purposes. This workflow will be kept updated
+as new releases are made. We strongly encourage users to check the CHANGELOG for
+breaking changes.

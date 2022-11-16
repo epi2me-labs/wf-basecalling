@@ -1,51 +1,24 @@
 #!/usr/bin/env nextflow
-
-// Developer notes
-//
-// This template workflow provides a basic structure to copy in order
-// to create a new workflow. Current recommended pratices are:
-//     i) create a simple command-line interface.
-//    ii) include an abstract workflow scope named "pipeline" to be used
-//        in a module fashion
-//   iii) a second concreate, but anonymous, workflow scope to be used
-//        as an entry point when using this workflow in isolation.
-
 import groovy.json.JsonBuilder
 nextflow.enable.dsl = 2
 
-include { fastq_ingress } from './lib/fastqingress'
-
-process summariseReads {
-    // concatenate fastq and fastq.gz in a dir
-
-    label "wftemplate"
-    cpus 1
-    input:
-        tuple path(directory), val(meta)
-    output:
-        path "${meta.sample_id}.stats"
-    shell:
-    """
-    fastcat -s ${meta.sample_id} -r ${meta.sample_id}.stats -x ${directory} > /dev/null
-    """
-}
-
+include { wf_dorado } from './basecalling'
 
 process getVersions {
-    label "wftemplate"
+    label "wf_basecalling"
     cpus 1
     output:
         path "versions.txt"
     script:
     """
-    python -c "import pysam; print(f'pysam,{pysam.__version__}')" >> versions.txt
-    fastcat --version | sed 's/^/fastcat,/' >> versions.txt
+    dorado --version 2>&1 | head -n1 | sed 's/^/dorado,/' >> versions.txt
+    minimap2 --version | head -n 1 | sed 's/^/minimap2,/' >> versions.txt
     """
 }
 
 
 process getParams {
-    label "wftemplate"
+    label "wf_basecalling"
     cpus 1
     output:
         path "params.json"
@@ -59,7 +32,7 @@ process getParams {
 
 
 process makeReport {
-    label "wftemplate"
+    label "wf_basecalling"
     input:
         val metadata
         path "seqs.txt"
@@ -86,7 +59,7 @@ process makeReport {
 // decoupling the publish from the process steps.
 process output {
     // publish inputs to output directory
-    label "wftemplate"
+    label "wf_basecalling"
     publishDir "${params.out_dir}", mode: 'copy', pattern: "*"
     input:
         path fname
@@ -98,46 +71,44 @@ process output {
 }
 
 
-// workflow module
-workflow pipeline {
-    take:
-        reads
-    main:
-        summary = summariseReads(reads)
-        software_versions = getVersions()
-        workflow_params = getParams()
-        metadata = reads.map { it -> return it[1] }.toList()
-        report = makeReport(metadata, summary, software_versions.collect(), workflow_params)
-    emit:
-        results = summary.concat(report, workflow_params)
-        // TODO: use something more useful as telemetry
-        telemetry = workflow_params
-}
-
-
 // entrypoint workflow
 WorkflowMain.initialise(workflow, params, log)
 workflow {
-
     if (params.disable_ping == false) {
         Pinguscript.ping_post(workflow, "start", "none", params.out_dir, params)
     }
-    
-    samples = fastq_ingress([
-        "input":params.fastq,
-        "sample":params.sample,
-        "sample_sheet":params.sample_sheet,
-        "unclassified":params.analyse_unclassified])
+    if (workflow.profile == "conda") {
+        throw new Exception(colors.red + "Sorry, wf-basecalling is not compatible with --profile conda, please use --profile standard (Docker) or --profile singularity." + colors.reset)
+    }
 
-    pipeline(samples)
-    output(pipeline.out.results)
-} 
+    // Basecall
+    // Ensure basecaller config is set
+    if (!params.basecaller_cfg) {
+        throw new Exception(colors.red + "You must provide a basecaller profile with --basecaller_cfg <profile>" + colors.reset)
+    }
+    // Ensure modbase threads are set if calling them
+    if (params.remora_cfg && params.basecaller_basemod_threads == 0) {
+        throw new Exception(colors.red + "--remora_cfg modbase aware config requires setting --basecaller_basemod_threads > 0" + colors.reset)
+    }
+
+    // ring ring it's for you
+    basecaller_out = wf_dorado(params.input, file(params.ref))
+
+    software_versions = getVersions()
+    workflow_params = getParams()
+
+    bam = basecaller_out.cram
+    idx = basecaller_out.crai
+
+    // dump out artifacts thanks for calling
+    output(bam.concat(idx, software_versions, workflow_params))
+}
 
 if (params.disable_ping == false) {
     workflow.onComplete {
         Pinguscript.ping_post(workflow, "end", "none", params.out_dir, params)
     }
-    
+
     workflow.onError {
         Pinguscript.ping_post(workflow, "error", "$workflow.errorMessage", params.out_dir, params)
     }
