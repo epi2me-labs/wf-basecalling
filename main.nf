@@ -41,7 +41,7 @@ process makeReport {
     output:
         path "wf-template-*.html"
     script:
-        report_name = "wf-template-" + params.report_name + '.html'
+        report_name = "wf-basecalling-report.html"
         def metadata = new JsonBuilder(metadata).toPrettyString()
     """
     echo '${metadata}' > metadata.json
@@ -77,22 +77,24 @@ workflow {
     if (params.disable_ping == false) {
         Pinguscript.ping_post(workflow, "start", "none", params.out_dir, params)
     }
-    if (workflow.profile == "conda") {
-        throw new Exception(colors.red + "Sorry, wf-basecalling is not compatible with --profile conda, please use --profile standard (Docker) or --profile singularity." + colors.reset)
-    }
 
     // Basecall
     // Ensure basecaller config is set
-    if (!params.basecaller_cfg) {
+    if (!params.basecaller_cfg && !params.basecaller_model_path) {
         throw new Exception(colors.red + "You must provide a basecaller profile with --basecaller_cfg <profile>" + colors.reset)
     }
     // Ensure modbase threads are set if calling them
-    if (params.remora_cfg && params.basecaller_basemod_threads == 0) {
+    if ((params.remora_cfg || params.remora_model_path) && params.basecaller_basemod_threads == 0) {
         throw new Exception(colors.red + "--remora_cfg modbase aware config requires setting --basecaller_basemod_threads > 0" + colors.reset)
     }
 
     // ring ring it's for you
-    basecaller_out = wf_dorado(params.input, file(params.ref))
+    basecaller_out = wf_dorado(
+        params.input,
+        file(params.ref),
+        params.basecaller_cfg, params.basecaller_model_path,
+        params.remora_cfg, params.remora_model_path,
+    )
 
     software_versions = getVersions()
     workflow_params = getParams()
