@@ -8,13 +8,17 @@ process dorado {
     input:
         tuple val(chunk_idx), path('*')
         path ref
+        tuple val(basecaller_cfg), path("dorado_model"), val(basecaller_model_override)
+        tuple val(remora_cfg), path("remora_model"), val(remora_model_override)
     output:
         path("${chunk_idx}.ubam")
     script:
-    def remora_args = (params.basecaller_basemod_threads > 0 && params.remora_cfg) ? "--remora-models \${DRD_MODELS_PATH}/${params.remora_cfg} --remora-threads ${params.basecaller_basemod_threads} --remora-batchsize 1024" : ''
+    def remora_model = remora_model_override ? "remora_model" : "\${DRD_MODELS_PATH}/${remora_cfg}"
+    def remora_args = (params.basecaller_basemod_threads > 0 && (params.remora_cfg || remora_model_override)) ? "--remora-models ${remora_model} --remora-threads ${params.basecaller_basemod_threads} --remora-batchsize 1024" : ''
+    def model_arg = basecaller_model_override ? "dorado_model" : "\${DRD_MODELS_PATH}/${basecaller_cfg}"
     """
     dorado basecaller \
-        "\${DRD_MODELS_PATH}/${params.basecaller_cfg}" . \
+        ${model_arg} . \
         ${remora_args} \
         --device ${params.cuda_device} | samtools view -b -o ${chunk_idx}.ubam -
     """
@@ -75,13 +79,40 @@ workflow wf_dorado {
     take:
         input_path
         ref
+        basecaller_model_name
+        basecaller_model_path
+        remora_model_name
+        remora_model_path
     main:
+        // Munge models
+        // I didn't want to use the same trick from wf-humvar as I thought the models here are much larger
+        // ...they aren't, but nevermind this is less hilarious than the humvar way
+        basecaller_model = file("${projectDir}/data/OPTIONAL_FILE")
+        def basecaller_model_override = false
+        if (params.basecaller_model_path) {
+            basecaller_model = file(params.basecaller_model_path, type: "dir", checkIfExists: true)
+            basecaller_model_override = true
+            log.warn "Overriding basecaller model with ${params.basecaller_model_path}"
+        }
+        remora_model = file("${projectDir}/data/OPTIONAL_FILE")
+        def remora_model_override = false
+        if (params.remora_model_path) {
+            remora_model = file(params.remora_model_path, type: "dir", checkIfExists: true)
+            remora_model_override = true
+            log.warn "Overriding remora model with ${params.remora_model_path}"
+        }
+
         Integer chunk_idx = 0
-        def pod5_chunks = Channel
+        pod5_chunks = Channel
             .fromPath(input_path + "**.${params.dorado_ext}")
             .buffer(size:params.basecaller_chunk_size, remainder:true)
             .map { tuple(chunk_idx++, it) }
-        called_bams = dorado(pod5_chunks, ref)
+        called_bams = dorado(
+            pod5_chunks,
+            ref,
+            tuple(basecaller_model_name, basecaller_model, basecaller_model_override),
+            tuple(remora_model_name, remora_model, remora_model_override),
+        )
 
         // make mmi for faster alignment
         mmi_ref = make_mmi(ref)

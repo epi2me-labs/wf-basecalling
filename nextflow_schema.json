@@ -97,6 +97,20 @@
                     "type": "integer",
                     "default": 1,
                     "description": "Set max number of threads to use for uncompressing uBAM and generating FASTQ for alignment (limited by config executor cpus)"
+                },
+                "basecaller_model_path": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Override the inferred model with a custom basecalling model",
+                    "help_text": "For typical use, users should set --basecaller_cfg which will use a named model from inside the container. Experimental or custom basecallers will not be available in the container and can be loaded from the host with --basecaller_model_path.",
+                    "hidden": true
+                },
+                "remora_model_path": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Override the inferred model with a custom remora model",
+                    "help_text": "For typical use, users should set --remora_cfg which will use a named model from inside the container. Experimental or custom models will not be available in the container and can be loaded from the host with --remora_model_path.",
+                    "hidden": true
                 }
             },
             "required": []
@@ -106,12 +120,6 @@
             "type": "object",
             "description": "Options for sample and report naming and other metadata.",
             "properties": {
-                "report_name": {
-                    "type": "string",
-                    "default": "report",
-                    "description": "Output report filename suffix.",
-                    "hidden": true
-                },
                 "sample_name": {
                     "type": "string",
                     "default": "SAMPLE",
@@ -129,6 +137,12 @@
                 "help": {
                     "type": "boolean",
                     "description": "Display help text.",
+                    "fa_icon": "fas fa-question-circle",
+                    "hidden": true
+                },
+                "version": {
+                    "type": "boolean",
+                    "description": "Display version and exit.",
                     "fa_icon": "fas fa-question-circle",
                     "hidden": true
                 },
