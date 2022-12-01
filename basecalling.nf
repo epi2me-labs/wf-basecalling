@@ -1,3 +1,8 @@
+include {
+    merge_calls as merge_pass_calls;
+    merge_calls as merge_fail_calls;
+} from './merge.nf'  // sigh. module aliasing seems easier than flow.
+
 
 process dorado {
     label "wf_dorado"
@@ -7,7 +12,6 @@ process dorado {
     cpus 8
     input:
         tuple val(chunk_idx), path('*')
-        path ref
         tuple val(basecaller_cfg), path("dorado_model"), val(basecaller_model_override)
         tuple val(remora_cfg), path("remora_model"), val(remora_model_override)
     output:
@@ -35,28 +39,15 @@ process dorado_align {
     output:
         // NOTE merge does not need an index if merging with region/BED (https://github.com/samtools/samtools/blob/969d44990df7fa9c7bda3a7140a2c1d1bd8c62a0/bam_sort.c#L1256-L1272)
         // so we can save a few cycles and just output the CRAM
-        path("${reads.baseName}.cram")
+        path("${reads.baseName}.pass.cram"), emit: pass
+        path("${reads.baseName}.fail.cram"), emit: fail
     script:
     """
     samtools bam2fq -@ ${params.ubam_bam2fq_threads} -T 1 ${reads} \
         | minimap2 -y -t ${params.ubam_map_threads} -ax map-ont ${mmi_reference} - \
-        | samtools sort -@ ${params.ubam_sort_threads} -o ${reads.baseName}.cram -O CRAM --reference ${reference} -
-    """
-}
-
-
-process merge_calls {
-    label "wf_basecalling"
-    cpus 4
-    input:
-        path(ref)
-        path(crams)
-    output:
-        path "${params.sample_name}.cram", emit: cram
-        path "${params.sample_name}.cram.crai", emit: crai
-    script:
-    """
-    samtools merge ${params.sample_name}.cram ${crams} --no-PG -O CRAM --write-index --reference ${ref} --threads ${task.cpus}
+        | samtools sort -@ ${params.ubam_sort_threads} \
+        | tee >(samtools view -e '[qs] < ${params.qscore_filter}}' -o ${reads.baseName}.fail.cram -O CRAM --reference ${reference} - ) \
+        | samtools view -e '[qs] >= ${params.qscore_filter}' -o ${reads.baseName}.pass.cram -O CRAM --reference ${reference} -
     """
 }
 
@@ -109,7 +100,6 @@ workflow wf_dorado {
             .map { tuple(chunk_idx++, it) }
         called_bams = dorado(
             pod5_chunks,
-            ref,
             tuple(basecaller_model_name, basecaller_model, basecaller_model_override),
             tuple(remora_model_name, remora_model, remora_model_override),
         )
@@ -117,10 +107,15 @@ workflow wf_dorado {
         // make mmi for faster alignment
         mmi_ref = make_mmi(ref)
 
-        // align and sort
+        // align, qscore_filter and sort
         aligned_crams = dorado_align(mmi_ref, ref, called_bams)
-        out = merge_calls(ref, aligned_crams.collect())
+
+        // merge passes and fails
+        // we've aliased the merge_calls process to save writing some
+        // unpleasant looking flow
+        pass = merge_pass_calls(ref, aligned_crams.pass.collect(), "pass")
+        fail = merge_fail_calls(ref, aligned_crams.fail.collect(), "fail")
     emit:
-        cram = out.cram
-        crai = out.crai
+        pass = pass
+        fail = fail
 }

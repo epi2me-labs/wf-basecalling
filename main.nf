@@ -99,11 +99,9 @@ workflow {
     software_versions = getVersions()
     workflow_params = getParams()
 
-    bam = basecaller_out.cram
-    idx = basecaller_out.crai
-
     // dump out artifacts thanks for calling
-    output(bam.concat(idx, software_versions, workflow_params))
+    output(basecaller_out.pass.flatten().concat(
+        basecaller_out.fail.flatten(), software_versions, workflow_params))
 }
 
 if (params.disable_ping == false) {

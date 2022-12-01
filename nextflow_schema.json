@@ -72,6 +72,12 @@
             "description": "Basecaller performance and load settings.",
             "help_text": "These basecalling options do not typically need to be changed.",
             "properties": {
+                "qscore_filter": {
+                    "type": "number",
+                    "default": 10,
+                    "description": "Mean qscore by which to filter reads. Inclusive such that reads with score >= qscore_filter are kept.",
+                    "help_text": "The mean qscore of reads is calculated by dorado and rounded to an integer by dorado and stored as a tag in dorado's SAM output. The pipeline separates reads into pass and fail categories based on this SAM tag."
+                },
                 "basecaller_chunk_size": {
                     "type": "number",
                     "default": 25,
