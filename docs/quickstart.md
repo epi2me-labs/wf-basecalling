@@ -56,5 +56,9 @@ Users should consult the CHANGELOG to keep up to date with breaking changes.
 
 The primary outputs of the workflow include:
 
-* a sorted, indexed CRAM of basecalls, aligned to the provided reference
+* two sorted, indexed CRAMs of basecalls, aligned to the provided reference, with reads separated by their quality score
+    * `<sample_name>.pass.cram` contains reads with `qscore >= threshold`
+    * `<sample_name>.fail.cram` contains reads with `qscore < threshold`
+
+Take care to retain the input reference as CRAM files cannot be read without the corresponding reference!
 
