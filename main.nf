@@ -74,6 +74,9 @@ process output {
 // entrypoint workflow
 WorkflowMain.initialise(workflow, params, log)
 workflow {
+
+    Map colors = NfcoreTemplate.logColours(params.monochrome_logs)
+
     if (params.disable_ping == false) {
         Pinguscript.ping_post(workflow, "start", "none", params.out_dir, params)
     }
