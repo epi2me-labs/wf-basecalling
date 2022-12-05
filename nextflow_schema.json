@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "https://raw.githubusercontent.com/epi2me-labs/wf-basecalling/master/nextflow_schema.json",
     "title": "epi2me-labs/wf-basecalling",
-    "description": "Helper workflow for basecalling ONT data",
+    "description": "Helper workflow for basecalling ONT reads.",
     "demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demo.tar.gz",
     "url": "https://github.com/epi2me-labs/wf-basecalling",
     "type": "object",
@@ -210,7 +210,7 @@
         },
         "wfversion": {
             "type": "string",
-            "default": "v0.1.1",
+            "default": "v0.1.2",
             "hidden": true
         },
         "monochrome_logs": {
