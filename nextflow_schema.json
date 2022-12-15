@@ -124,6 +124,10 @@
                     "format": "directory-path",
                     "description": "Override the inferred model with a custom remora model",
                     "help_text": "For typical use, users should set --remora_cfg which will use a named model from inside the container. Experimental or custom models will not be available in the container and can be loaded from the host with --remora_model_path."
+                },
+                "basecaller_args": {
+                    "type": "string",
+                    "description": "Additional command line arguments to pass to the basecaller process."
                 }
             },
             "required": []
@@ -210,7 +214,7 @@
         },
         "wfversion": {
             "type": "string",
-            "default": "v0.1.2",
+            "default": "v0.2.0",
             "hidden": true
         },
         "monochrome_logs": {
@@ -225,7 +229,7 @@
         }
     },
     "docs": {
-        "intro": "## Introduction\n\nThis workflow introduces users to [`Dorado`](https://github.com/nanoporetech/dorado),\nour alpha-release basecaller. `dorado` is still under active development and\nhas been released for evaluation purposes. This workflow will be kept updated\nas new releases are made. We strongly encourage users to check the CHANGELOG for\nbreaking changes.\n",
+        "intro": "## Introduction\n\nThis workflow introduces users to [`Dorado`](https://github.com/nanoporetech/dorado),\nwhich is now our standard basecaller. `dorado` is still under active development and\nwill be kept updated as new releases are made. We strongly encourage users to check\nthe CHANGELOG for breaking changes.\n",
         "links": "## Useful links\n\n* [nextflow](https://www.nextflow.io/)\n* [docker](https://www.docker.com/products/docker-desktop)\n* [singularity](https://sylabs.io/singularity/)\n* [dorado](https://github.com/nanoporetech/dorado/)\n"
     }
 }

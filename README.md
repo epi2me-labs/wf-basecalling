@@ -7,10 +7,9 @@ and aligning it with `minimap2` to produce a sorted, indexed CRAM.
 ## Introduction
 
 This workflow introduces users to [`Dorado`](https://github.com/nanoporetech/dorado),
-our alpha-release basecaller. `dorado` is still under active development and
-has been released for evaluation purposes. This workflow will be kept updated
-as new releases are made. We strongly encourage users to check the CHANGELOG for
-breaking changes.
+which is now our standard basecaller. `dorado` is still under active development and
+will be kept updated as new releases are made. We strongly encourage users to check
+the CHANGELOG for breaking changes.
 ## Quickstart
 
 The workflow uses [nextflow](https://www.nextflow.io/) to manage compute and 
@@ -56,14 +55,11 @@ The `dorado` repository has [a table of available models](https://github.com/nan
 
 ### Updating the workflow
 
-It is strongly recommended to keep this experimental workflow updated with:
+It is recommended to keep this workflow updated to take advantage of the latest basecalling models with:
 
 ```
 nextflow pull epi2me-labs/wf-basecalling
 ```
-
-Users are reminded that `dorado` is released for evaluation purposes only.
-Users should consult the CHANGELOG to keep up to date with breaking changes.
 
 ### Workflow outputs
 

@@ -43,14 +43,11 @@ The `dorado` repository has [a table of available models](https://github.com/nan
 
 ### Updating the workflow
 
-It is strongly recommended to keep this experimental workflow updated with:
+It is recommended to keep this workflow updated to take advantage of the latest basecalling models with:
 
 ```
 nextflow pull epi2me-labs/wf-basecalling
 ```
-
-Users are reminded that `dorado` is released for evaluation purposes only.
-Users should consult the CHANGELOG to keep up to date with breaking changes.
 
 ### Workflow outputs
 
