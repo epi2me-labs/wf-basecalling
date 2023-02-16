@@ -5,6 +5,7 @@ include:
 
 variables:
     CI_FLAVOUR: "new" # set to "classic" for old-style CI
+    SKIP_PYTHON_TESTS: "not applicable"
 
 conda-run:
     rules:
