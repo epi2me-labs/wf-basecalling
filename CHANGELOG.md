@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.0]
+### Changed
+- Updated Dorado to v0.2.1
+- `--basecaller_cfg` and `--remora_cfg` are now validated against a list of models installed in the Dorado container
+### Fixed
+- Workflow no longer prints a confusing error when Dorado fails
+
 ## [v0.2.0]
 ### Added
 * `--basecaller_args` may be used to provide custom arguments to the basecalling process

@@ -22,19 +22,6 @@ process dorado {
     def model_arg = basecaller_model_override ? "dorado_model" : "\${DRD_MODELS_PATH}/${basecaller_cfg}"
     def basecaller_args = params.basecaller_args ?: ''
     """
-    echo '***'
-    echo 'Available models:'
-    list-models | sed 's,^,- ,' | sed "s,\${DRD_MODELS_PATH}/,,"
-    echo '***'
-    echo 'You selected:'
-    echo "Basecalling model: ${basecaller_cfg}"
-    echo "Remora model     : ${remora_cfg}"
-    echo '***'
-    echo 'A file open error below indicates that you have entered an unknown model name.'
-    echo 'It is possible the model you selected worked previously but has been updated to a new version.'
-    echo 'Resubmit this workflow with an appropriate model from the model list above.'
-    echo '***'
-
     dorado basecaller \
         ${model_arg} . \
         ${remora_args} \
