@@ -22,13 +22,12 @@
                 "ref": {
                     "type": "string",
                     "format": "file-path",
-                    "description": "Reference FASTA file to align basecalled reads to.",
-                    "help_text": "Take care to retain this reference FASTA as the output CRAM files cannot be read without this reference."
+                    "description": "Optional reference FASTA file to align basecalled reads to.",
+                    "help_text": "Without a reference, basecalls are output to unaligned CRAM. When using a reference, take care to retain this FASTA file as the output CRAM file cannot be read without the reference it was aligned to."
                 }
             },
             "required": [
-                "input",
-                "ref"
+                "input"
             ]
         },
         "output": {
@@ -47,6 +46,11 @@
                     "type": "string",
                     "default": "SAMPLE",
                     "description": "Sample name to prefix file names of workflow outputs."
+                },
+                "fastq_only": {
+                    "type": "boolean",
+                    "description": "Output unaligned FASTQ instead of unaligned CRAM",
+                    "help_text": "FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM even if fastq_only is set."
                 }
             }
         },
@@ -179,6 +183,11 @@
                     "type": "integer",
                     "default": 1,
                     "description": "Set max number of threads to use for uncompressing uBAM and generating FASTQ for alignment (limited by config executor cpus)"
+                },
+                "merge_threads": {
+                    "type": "integer",
+                    "default": 4,
+                    "description": "Set max number of threads to use for merging BAM files (limited by config executor cpus)"
                 }
             }
         },

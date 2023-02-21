@@ -1,6 +1,8 @@
 include {
     merge_calls as merge_pass_calls;
     merge_calls as merge_fail_calls;
+    merge_calls_to_fastq as merge_pass_calls_to_fastq;
+    merge_calls_to_fastq as merge_fail_calls_to_fastq;
 } from './merge.nf'  // sigh. module aliasing seems easier than flow.
 
 
@@ -26,12 +28,12 @@ process dorado {
         ${model_arg} . \
         ${remora_args} \
         ${basecaller_args} \
-        --device ${params.cuda_device} | samtools view -b -o ${chunk_idx}.ubam -
+        --device ${params.cuda_device} | samtools view --no-PG -b -o ${chunk_idx}.ubam -
     """
 }
 
 
-process dorado_align {
+process align_and_qsFilter {
     label "wf_basecalling"
     cpus {params.ubam_map_threads + params.ubam_sort_threads + params.ubam_bam2fq_threads}
     input:
@@ -48,8 +50,21 @@ process dorado_align {
     samtools bam2fq -@ ${params.ubam_bam2fq_threads} -T 1 ${reads} \
         | minimap2 -y -t ${params.ubam_map_threads} -ax map-ont ${mmi_reference} - \
         | samtools sort -@ ${params.ubam_sort_threads} \
-        | tee >(samtools view -e '[qs] < ${params.qscore_filter}}' -o ${reads.baseName}.fail.cram -O CRAM --reference ${reference} - ) \
-        | samtools view -e '[qs] >= ${params.qscore_filter}' -o ${reads.baseName}.pass.cram -O CRAM --reference ${reference} -
+        | samtools view -e '[qs] >= ${params.qscore_filter}' --output ${reads.baseName}.pass.cram --unoutput ${reads.baseName}.fail.cram -O CRAM --reference ${reference} -
+    """
+}
+
+
+process qsFilter {
+    label "wf_basecalling"
+    input:
+        path reads
+    output:
+        path("${reads.baseName}.pass.cram"), emit: pass
+        path("${reads.baseName}.fail.cram"), emit: fail
+    script:
+    """
+    samtools view -e '[qs] >= ${params.qscore_filter}' ${reads} --output ${reads.baseName}.pass.cram --unoutput ${reads.baseName}.fail.cram -O CRAM
     """
 }
 
@@ -71,12 +86,23 @@ process make_mmi {
 workflow wf_dorado {
     take:
         input_path
-        ref
+        input_ref
         basecaller_model_name
         basecaller_model_path
         remora_model_name
         remora_model_path
     main:
+
+        if (input_ref) {
+            if (params.fastq_only) {
+                log.warn "Ignoring request to output FASTQ as you have provided a reference for alignment."
+            }
+            ref = input_ref
+        }
+        else {
+            ref = file("${projectDir}/data/OPTIONAL_FILE")
+        }
+
         // Munge models
         // I didn't want to use the same trick from wf-humvar as I thought the models here are much larger
         // ...they aren't, but nevermind this is less hilarious than the humvar way
@@ -106,17 +132,29 @@ workflow wf_dorado {
             tuple(remora_model_name, remora_model, remora_model_override),
         )
 
-        // make mmi for faster alignment
-        mmi_ref = make_mmi(ref)
+        if (input_ref) {
+            // make mmi for faster alignment
+            mmi_ref = make_mmi(ref)
 
-        // align, qscore_filter and sort
-        aligned_crams = dorado_align(mmi_ref, ref, called_bams)
+            // align, qscore_filter and sort
+            crams = align_and_qsFilter(mmi_ref, ref, called_bams)
+        }
+        else {
+            // skip alignment and just collate pass and fail
+            crams = qsFilter(called_bams)
+        }
 
         // merge passes and fails
-        // we've aliased the merge_calls process to save writing some
-        // unpleasant looking flow
-        pass = merge_pass_calls(ref, aligned_crams.pass.collect(), "pass")
-        fail = merge_fail_calls(ref, aligned_crams.fail.collect(), "fail")
+        // we've aliased the merge_calls process to save writing some unpleasant looking flow
+        // FASTQ output can only be used when there is no input_ref
+        if (params.fastq_only && !input_ref) {
+            pass = merge_pass_calls_to_fastq(crams.pass.collect(), "pass")
+            fail = merge_fail_calls_to_fastq(crams.fail.collect(), "fail")
+        }
+        else {
+            pass = merge_pass_calls(ref, crams.pass.collect(), "pass")
+            fail = merge_fail_calls(ref, crams.fail.collect(), "fail")
+        }
     emit:
         pass = pass
         fail = fail
