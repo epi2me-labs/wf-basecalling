@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0]
+### Changed
+- Reference is no longer required for basecalling
+    - CRAM files with no alignments will be generated if `--ref` is not provided
+    - FASTQ may be output *instead* of CRAM by providing `--fastq_only`
+- PG line for converting Dorado SAM output to uBAM is no longer written to output header
+- Work directory is automatically cleaned up on successful completion to remove large intermediate files
+    - Override this by including `cleanup = false` in a custom Nextflow configuration file
+- Number of threads for merging is now configurable for advanced users
+
 ## [v0.3.0]
 ### Changed
 - Updated Dorado to v0.2.1
