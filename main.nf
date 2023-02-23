@@ -91,18 +91,10 @@ workflow {
         throw new Exception(colors.red + "--remora_cfg modbase aware config requires setting --basecaller_basemod_threads > 0" + colors.reset)
     }
 
-    // Set up ref (if provided)
-    if (params.ref) {
-        ref = Channel.fromPath(params.ref, checkIfExists: true)
-    }
-    else {
-        ref = null
-    }
-
     // ring ring it's for you
     basecaller_out = wf_dorado(
         params.input,
-        ref,
+        params.ref,
         params.basecaller_cfg, params.basecaller_model_path,
         params.remora_cfg, params.remora_model_path,
     )

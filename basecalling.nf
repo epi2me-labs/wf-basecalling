@@ -97,7 +97,8 @@ workflow wf_dorado {
             if (params.fastq_only) {
                 log.warn "Ignoring request to output FASTQ as you have provided a reference for alignment."
             }
-            ref = input_ref
+            // create value channel of ref by calling first
+            ref = Channel.fromPath(params.ref, checkIfExists: true).first()
         }
         else {
             ref = file("${projectDir}/data/OPTIONAL_FILE")
