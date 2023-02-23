@@ -4,12 +4,20 @@ This repository contains a [nextflow](https://www.nextflow.io/) workflow
 for basecalling a directory of `pod5` or `fast5` signal data with `dorado`
 and aligning it with `minimap2` to produce a sorted, indexed CRAM.
 
+
+
+
+
 ## Introduction
 
 This workflow introduces users to [`Dorado`](https://github.com/nanoporetech/dorado),
 which is now our standard basecaller. `dorado` is still under active development and
 will be kept updated as new releases are made. We strongly encourage users to check
 the CHANGELOG for breaking changes.
+
+
+
+
 ## Quickstart
 
 The workflow uses [nextflow](https://www.nextflow.io/) to manage compute and
@@ -71,6 +79,10 @@ The primary outputs of the workflow include:
     * `<sample_name>.fail.cram` contains reads with `qscore < threshold`
 
 Take care to retain the input reference as CRAM files cannot be read without the corresponding reference!
+
+
+
+
 
 ## Useful links
 
