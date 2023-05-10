@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [v0.5.1]
+### Fixed
+- Missing models from list of valid models
+- "dna_r9.4.1_e8_hac@v3.4_5mCG@v0" is now correctly referred to as "dna_r9.4.1_e8_hac@v3.3_5mCG@v0", to match the simplex model version
+- "dna_r9.4.1_e8_sup@v3.4_5mCG@v0" is now correctly referred to as "dna_r9.4.1_e8_sup@v3.3_5mCG@v0", to match the simplex model version
+
 ## [v0.5.0]
 ### Changed
 - Updated Dorado to v0.2.4
