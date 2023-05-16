@@ -1,9 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.5.2]
+### Added
+- Configuration for running demo data in AWS
 
 ## [v0.5.1]
 ### Fixed
@@ -15,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated Dorado to v0.2.4
 - Updated to Oxford Nanopore Technologies PLC. Public License
+
 ### Fixed
 - Dorado image correctly ships with CUDA runtime library
 
@@ -36,12 +40,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated Dorado to v0.2.1
 - `--basecaller_cfg` and `--remora_cfg` are now validated against a list of models installed in the Dorado container
+
 ### Fixed
 - Workflow no longer prints a confusing error when Dorado fails
 
 ## [v0.2.0]
 ### Added
-* `--basecaller_args` may be used to provide custom arguments to the basecalling process
+- `--basecaller_args` may be used to provide custom arguments to the basecalling process
+
 ### Changed
 - Updated Dorado to v0.1.1
     - Latest models are now v4.0.0
@@ -53,22 +59,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v0.1.1]
 ### Fixed
-* Default basecaller_basemod_threads value
-* Undefined `colors` variable
+- Default basecaller_basemod_threads value
+- Undefined `colors` variable
 
 ## [v0.1.0]
 ### Added
-* Workflow will now output pass and fail CRAM
-    * Reads are separated into pass and fail based on their mean qscore as calculated by dorado
-    * The threshold can be changed with `--qscore_filter`
+- Workflow will now output pass and fail CRAM
+    - Reads are separated into pass and fail based on their mean qscore as calculated by dorado
+    - The threshold can be changed with `--qscore_filter`
+
 ### Changed
-* Improved `--help` documentation
+- Improved `--help` documentation
+
 ### Fixed
-* Workflow will exit with "No files match pattern" if no suitable files are found to basecall
-    * Ensure to set `--dorado_ext` to `fast5` or `pod5` as appropriate
+- Workflow will exit with "No files match pattern" if no suitable files are found to basecall
+    - Ensure to set `--dorado_ext` to `fast5` or `pod5` as appropriate
 
 ## [v0.0.1]
-- Initial release of wf-basecalling supporting the Dorado basecaller
+* Initial release of wf-basecalling supporting the Dorado basecaller
 
 ## [v0.0.0]
-- Initialised wf-basecalling from wf-template #30ff92d
+* Initialised wf-basecalling from wf-template #30ff92d
+
