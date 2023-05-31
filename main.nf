@@ -1,8 +1,11 @@
 #!/usr/bin/env nextflow
 import groovy.json.JsonBuilder
+import nextflow.util.BlankSeparatedList
+
 nextflow.enable.dsl = 2
 
 include { wf_dorado } from './basecalling'
+nextflow.preview.recursion=true
 
 process getVersions {
     label "wf_basecalling"
@@ -31,25 +34,106 @@ process getParams {
 }
 
 
-process makeReport {
-    label "wf_basecalling"
+process cram_cache {
     input:
-        val metadata
-        path "seqs.txt"
+        path reference
+    output:
+        path("ref_cache/"), emit: cram_cache
+    script:
+    """
+    seq_cache_populate.pl -root ref_cache/ ${reference}
+    """
+}
+
+
+process bamstats {
+    label "wf_common"
+    cpus params.stats_threads
+    input: 
+        path "input.cram"
+        path ref_cache
+
+    output: 
+        path "bamstats.tsv", emit: stats
+        path "stats.${task.index}.json", emit: json
+    script:
+        String ref_path = ref_cache.name.startsWith('OPTIONAL_FILE') ? '' : "export REF_PATH=${ref_cache}/%2s/%2s/%s"
+    """
+    ${ref_path}
+    bamstats --threads=${task.cpus} -u input.cram > bamstats.tsv
+    fastcat_histogram.py \
+            --sample_id "${params.sample_name}" \
+            bamstats.tsv "stats.${task.index}.json"
+    """
+}
+
+
+// Scan step for accumulating fastcat stats
+//
+// Nextflow scan does a silly thing where it feeds back the growing list of
+// historical outputs. We only ever need the most recent output (the "state").
+process progressive_stats {
+    label "wf_common"
+    maxForks 1
+    cpus 1
+    input: 
+        path fastcat_stats
+    output:
+        path("all_stats.${task.index}")
+    script:
+        def new_input = fastcat_stats instanceof BlankSeparatedList ? fastcat_stats.first() : fastcat_stats
+        def state = fastcat_stats instanceof BlankSeparatedList ? fastcat_stats.last() : "NOSTATE"
+        def output = "all_stats.${task.index}"
+    """
+    touch "${state}"
+    add_jsons.py "${new_input}" "${state}" "${output}"
+    """
+}
+
+
+process makeReport {
+    label "wf_common"
+    input:
+        path per_read_stats
         path "versions/*"
         path "params.json"
     output:
-        path "wf-template-*.html"
+        path "wf-basecalling-*.html"
     script:
-        report_name = "wf-basecalling-report.html"
-        def metadata = new JsonBuilder(metadata).toPrettyString()
+        String report_name = "wf-basecalling-report.html"
     """
-    echo '${metadata}' > metadata.json
     report.py $report_name \
         --versions versions \
-        seqs.txt \
-        --params params.json \
-        --metadata metadata.json
+        --stats $per_read_stats \
+        --params params.json
+    """
+}
+
+
+// watch path stop condition, if params.read_limit is met will inject a stop file in to input folder.
+process stopCondition { 
+    label "wf_common"
+    cpus 1 
+    publishDir params.input, mode: 'copy', pattern: "*"
+    input:
+        path json
+        val (stop_filename)
+    output:
+        path "${stop_filename}", optional: true, emit: stop
+    script:
+        int threshold = params.read_limit
+    """    
+    #!/usr/bin/env python
+    import json
+    from pathlib import Path
+    with open("$json") as json_file:
+        state = json.load(json_file)
+        total = 0 
+        for k,v in state.items():
+            total += v["total_reads"]
+        if total >= $threshold:
+            p = Path("$stop_filename")
+            p.touch(exist_ok=False)
     """
 }
 
@@ -90,21 +174,44 @@ workflow {
     if ((params.remora_cfg || params.remora_model_path) && params.basecaller_basemod_threads == 0) {
         throw new Exception(colors.red + "--remora_cfg modbase aware config requires setting --basecaller_basemod_threads > 0" + colors.reset)
     }
-
     // ring ring it's for you
     basecaller_out = wf_dorado(
         params.input,
         params.ref,
         params.basecaller_cfg, params.basecaller_model_path,
         params.remora_cfg, params.remora_model_path,
+        params.watch_path,
+        params.dorado_ext
     )
-
     software_versions = getVersions()
     workflow_params = getParams()
 
+    // stream stats for report 
+    if (params.ref) {
+        ref = params.ref
+        ref = Channel.fromPath(params.ref, checkIfExists: true).first()
+        ref_cache = cram_cache(ref)
+        }
+        else {
+        ref_cache = file("${projectDir}/data/OPTIONAL_FILE")
+    }
+    
+    stat = bamstats(basecaller_out.chunked_pass_crams, ref_cache)
+    stats = progressive_stats.scan(stat.json)
+    report = makeReport(stats, software_versions, workflow_params)
+    
     // dump out artifacts thanks for calling
     output(basecaller_out.pass.flatten().concat(
-        basecaller_out.fail.flatten(), software_versions, workflow_params))
+        basecaller_out.fail.flatten(), software_versions, workflow_params, report))
+
+    //  Stop file to input folder when read_limit stop condition is met.
+    String stop_filename = "STOP.${workflow.sessionId}.${params.dorado_ext}" 
+    if (params.watch_path && params.read_limit){
+        stopCondition(stats, stop_filename).first().subscribe {
+            log.info "Creating STOP file: '$stop_filename'"
+        }
+    }
+
 }
 
 if (params.disable_ping == false) {

@@ -91,6 +91,8 @@ workflow wf_dorado {
         basecaller_model_path
         remora_model_name
         remora_model_path
+        watch_path
+        dorado_ext
     main:
 
         if (input_ref) {
@@ -123,10 +125,33 @@ workflow wf_dorado {
         }
 
         Integer chunk_idx = 0
-        pod5_chunks = Channel
+        String stop_filename = "STOP.${workflow.sessionId}.${params.dorado_ext}" // use the sessionId so resume works
+        existing_pod5_chunks = Channel
             .fromPath(input_path + "**.${params.dorado_ext}", checkIfExists: true)
-            .buffer(size:params.basecaller_chunk_size, remainder:true)
-            .map { tuple(chunk_idx++, it) }
+        if (watch_path) {
+            // watch input path for more pod5s
+            if (params.read_limit) {
+                log.warn "Watching ${input_path} for new ${dorado_ext} files, until ${params.read_limit} reads have been observed."
+                log.warn "To stop this workflow early, create: ${input_path}/${stop_filename}"
+            }
+            else {
+                log.warn "Watching ${input_path} for new ${dorado_ext} files indefinitely."
+                log.warn "To stop this workflow create: ${input_path}/${stop_filename}"
+            }
+            watch_pod5_chunks = Channel
+                .watchPath("$input_path/**.${params.dorado_ext}")
+                .until{ it.name == stop_filename }
+            pod5_chunks = existing_pod5_chunks
+                .concat(watch_pod5_chunks)
+                .buffer(size:params.basecaller_chunk_size, remainder:true)
+                .map { tuple(chunk_idx++, it) }
+        } else {
+            pod5_chunks = existing_pod5_chunks
+                .buffer(size:params.basecaller_chunk_size, remainder:true)
+                .map { tuple(chunk_idx++, it) }
+        }
+
+
         called_bams = dorado(
             pod5_chunks,
             tuple(basecaller_model_name, basecaller_model, basecaller_model_override),
@@ -156,7 +181,10 @@ workflow wf_dorado {
             pass = merge_pass_calls(ref, crams.pass.collect(), "pass")
             fail = merge_fail_calls(ref, crams.fail.collect(), "fail")
         }
+        
     emit:
+        chunked_pass_crams = crams.pass
         pass = pass
         fail = fail
+        
 }

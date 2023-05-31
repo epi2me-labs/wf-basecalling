@@ -192,6 +192,29 @@
                     "type": "integer",
                     "default": 4,
                     "description": "Set max number of threads to use for merging BAM files (limited by config executor cpus)"
+                },
+                "stats_threads": {
+                    "type": "integer",
+                    "default": 4,
+                    "description": "Set max number of threads to use for getting stats from output files. (limited by config executor cpus)"
+                }
+            }
+        },
+        "real_time_analysis_options": {
+            "title": "Real Time Analysis Options",
+            "type": "object",
+            "description": "Options relating to the non default real-time streaming workflow.",
+            "default": "",
+            "properties": {
+                "watch_path": {
+                    "type": "boolean",
+                    "description": "Enable to continuously watch the input directory for new input files. Reads will be analysed as they appear.",
+                    "help_text": "This option enables the use of Nextflow's directory watching feature to constantly monitor input directories for new files. As soon as files are written by an external process Nextflow will begin analysing these files. The workflow will accumulate data over time to produce an updating report."
+                },
+                "read_limit": {
+                    "type": "integer",
+                    "description": "Stop processing data when a particular number of reads have been analysed. By default the workflow will run indefinitely.",
+                    "help_text": "Sets the upper bound on the number of reads that will be analysed before the workflow is automatically stopped and no more data is analysed."
                 }
             }
         },
@@ -237,6 +260,9 @@
         },
         {
             "$ref": "#/definitions/multiprocessing_options"
+        },
+        {
+            "$ref": "#/definitions/real_time_analysis_options"
         },
         {
             "$ref": "#/definitions/generic_options"
