@@ -7,15 +7,31 @@
 set -euo pipefail
 
 TARGET=$1
-DORADO_CONTAINER=$(nextflow config -flat | grep "process.'withLabel:wf_basecalling'.container" | awk -F'= ' '{print $2}' | sed "s,',,g")
+ENGINE=$2
+
+if ! command -v nextflow &> /dev/null
+then
+    # we should be in CI, nextflow is installed right here
+    NEXTFLOW="./nextflow"
+else
+    NEXTFLOW=`which nextflow`
+fi
+
+DORADO_CONTAINER=$(${NEXTFLOW} config -flat | grep "process.'withLabel:wf_basecalling'.container" | awk -F'= ' '{print $2}' | sed "s,',,g")
 echo "# DORADO_CONTAINER=${DORADO_CONTAINER}"
 
 # Convert model lists to JSON arrays
-SIMPLEX_MODELS=$(singularity exec "docker://${DORADO_CONTAINER}" list-models --simplex --only-names | jq -Rn '[inputs]')
-MODBASE_MODELS=$(singularity exec "docker://${DORADO_CONTAINER}" list-models --modbase --only-names | jq -Rn '[inputs]')
+if [ "$ENGINE" = "simg" ]; then
+    SIMPLEX_MODELS=$(singularity exec "docker://${DORADO_CONTAINER}" list-models --simplex --only-names | jq -Rn '[inputs]')
+    MODBASE_MODELS=$(singularity exec "docker://${DORADO_CONTAINER}" list-models --modbase --only-names | jq -Rn '[inputs]')
+else
+    SIMPLEX_MODELS=$(docker run "${DORADO_CONTAINER}" list-models --simplex --only-names | jq -Rn '[inputs]')
+    MODBASE_MODELS=$(docker run "${DORADO_CONTAINER}" list-models --modbase --only-names | jq -Rn '[inputs]')
+fi
 
 # Inject JSON arrays to relevant schema enum
 jq \
+    -j \
     --indent 4 \
     --argjson simplex_models "${SIMPLEX_MODELS}" \
     --argjson modbase_models "${MODBASE_MODELS}" \
@@ -23,9 +39,6 @@ jq \
     (.definitions.basecalling_options.properties.remora_cfg.enum) = $modbase_models' \
     ${TARGET}/nextflow_schema.json > ${TARGET}/nextflow_schema.json.new
 
-# Remove newline at end of file
-truncate -s -1 ${TARGET}/nextflow_schema.json.new
-
 echo "# Updated schema generated, you should inspect it before adopting it!"
-echo "diff ${TARGET}/nextflow_schema.json.new ${TARGET}/nextflow_schema.json"
+echo "diff ${TARGET}/nextflow_schema.json ${TARGET}/nextflow_schema.json.new"
 echo "mv ${TARGET}/nextflow_schema.json.new ${TARGET}/nextflow_schema.json"

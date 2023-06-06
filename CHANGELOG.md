@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.7.0]
+### Changed
+- Updated Dorado to v0.3.0
+    - Latest models are now v4.0.0
+### Added
+- v4.2.0 models, which must be used for sequencing runs performed at new 5 kHz sampling rate
+- v4.1.0 models replace v4.0.0 models and must be used for sequencing runs performed at 4 kHz sampling rate
+### Removed
+- v4.0.0 models
+
 ## [v0.6.0]
 ### Added
 - Ability to watch the input path and process files as they become available in real time.
