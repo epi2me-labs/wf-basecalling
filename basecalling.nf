@@ -24,6 +24,9 @@ process dorado {
     def model_arg = basecaller_model_override ? "dorado_model" : "\${DRD_MODELS_PATH}/${basecaller_cfg}"
     def basecaller_args = params.basecaller_args ?: ''
     """
+    set +e
+    source /opt/nvidia/entrypoint.d/*-gpu-driver-check.sh # runtime driver check msg
+    set -e
     dorado basecaller \
         ${model_arg} . \
         ${remora_args} \
