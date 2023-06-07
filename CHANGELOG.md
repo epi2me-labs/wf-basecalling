@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v0.7.0]
 ### Changed
 - Updated Dorado to v0.3.0
-    - Latest models are now v4.0.0
 - BAM may be output **instead** of CRAM by providing `--output_bam`
 - `--help` message will list basecalling and modbasecalling models available for use with the workflow
 ### Added
