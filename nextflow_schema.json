@@ -65,7 +65,7 @@
                 "basecaller_cfg": {
                     "type": "string",
                     "description": "Name of the model to use for converting signal.",
-                    "help_text": "Required for basecalling. The model list only shows models that are compatible with this workflow.",
+                    "help_text": "Required for basecalling. The model list only shows models that are compatible with this workflow. You should select 'custom' to override the basecaller_cfg with basecaller_model_path.",
                     "enum": [
                         "dna_r10.4.1_e8.2_260bps_fast@v4.1.0",
                         "dna_r10.4.1_e8.2_260bps_hac@v4.1.0",
@@ -79,13 +79,14 @@
                         "dna_r9.4.1_e8_fast@v3.4",
                         "dna_r9.4.1_e8_hac@v3.3",
                         "dna_r9.4.1_e8_sup@v3.3",
-                        "rna003_120bps_sup@v3"
+                        "rna003_120bps_sup@v3",
+                        "custom"
                     ]
                 },
                 "remora_cfg": {
                     "type": "string",
                     "description": "Name of the model to use for calling modified bases.",
-                    "help_text": "Required for calling modified bases while basecalling. The model list only shows models that are compatible with this workflow.",
+                    "help_text": "Required for calling modified bases while basecalling. The model list only shows models that are compatible with this workflow. You should select 'custom' to override the remora_cfg with remora_model_path.",
                     "enum": [
                         "dna_r10.4.1_e8.2_400bps_fast@v4.1.0_5mCG_5hmCG@v2",
                         "dna_r10.4.1_e8.2_400bps_fast@v4.2.0_5mCG_5hmCG@v2",
@@ -95,7 +96,8 @@
                         "dna_r10.4.1_e8.2_400bps_sup@v4.2.0_5mCG_5hmCG@v2",
                         "dna_r9.4.1_e8_fast@v3.4_5mCG@v0",
                         "dna_r9.4.1_e8_hac@v3.3_5mCG@v0",
-                        "dna_r9.4.1_e8_sup@v3.3_5mCG@v0"
+                        "dna_r9.4.1_e8_sup@v3.3_5mCG@v0",
+                        "custom"
                     ]
                 },
                 "dorado_ext": {
@@ -147,13 +149,13 @@
                 "basecaller_model_path": {
                     "type": "string",
                     "format": "directory-path",
-                    "description": "Override the inferred model with a custom basecalling model",
+                    "description": "Override the named basecalling model with a custom basecalling model",
                     "help_text": "For typical use, users should set --basecaller_cfg which will use a named model from inside the container. Experimental or custom basecallers will not be available in the container and can be loaded from the host with --basecaller_model_path."
                 },
                 "remora_model_path": {
                     "type": "string",
                     "format": "directory-path",
-                    "description": "Override the inferred model with a custom remora model",
+                    "description": "Override the named remora model with a custom remora model",
                     "help_text": "For typical use, users should set --remora_cfg which will use a named model from inside the container. Experimental or custom models will not be available in the container and can be loaded from the host with --remora_model_path."
                 },
                 "basecaller_args": {

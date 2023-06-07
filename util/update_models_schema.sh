@@ -17,17 +17,18 @@ else
     NEXTFLOW=`which nextflow`
 fi
 
+# work out how to inspect the container contents
 DORADO_CONTAINER=$(${NEXTFLOW} config -flat | grep "process.'withLabel:wf_basecalling'.container" | awk -F'= ' '{print $2}' | sed "s,',,g")
 echo "# DORADO_CONTAINER=${DORADO_CONTAINER}"
+if [ "$ENGINE" = "simg" ]; then
+    CMD_PREFIX="singularity exec docker://${DORADO_CONTAINER}"
+else
+    CMD_PREFIX="docker run ${DORADO_CONTAINER}"
+fi
 
 # Convert model lists to JSON arrays
-if [ "$ENGINE" = "simg" ]; then
-    SIMPLEX_MODELS=$(singularity exec "docker://${DORADO_CONTAINER}" list-models --simplex --only-names | jq -Rn '[inputs]')
-    MODBASE_MODELS=$(singularity exec "docker://${DORADO_CONTAINER}" list-models --modbase --only-names | jq -Rn '[inputs]')
-else
-    SIMPLEX_MODELS=$(docker run "${DORADO_CONTAINER}" list-models --simplex --only-names | jq -Rn '[inputs]')
-    MODBASE_MODELS=$(docker run "${DORADO_CONTAINER}" list-models --modbase --only-names | jq -Rn '[inputs]')
-fi
+SIMPLEX_MODELS=$(${CMD_PREFIX} list-models --simplex --only-names | sed '$a\custom' | jq -Rn '[inputs]')
+MODBASE_MODELS=$(${CMD_PREFIX} list-models --modbase --only-names | sed '$a\custom' | jq -Rn '[inputs]')
 
 # Inject JSON arrays to relevant schema enum
 jq \
