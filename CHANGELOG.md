@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Dorado to v0.3.0
     - Latest models are now v4.0.0
 - BAM may be output **instead** of CRAM by providing `--output_bam`
+- `--help` message will list basecalling and modbasecalling models available for use with the workflow
 ### Added
 - v4.2.0 models, which must be used for sequencing runs performed at new 5 kHz sampling rate
 - v4.1.0 models replace v4.0.0 models and must be used for sequencing runs performed at 4 kHz sampling rate
