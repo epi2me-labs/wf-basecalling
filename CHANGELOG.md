@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated Dorado to v0.3.0
     - Latest models are now v4.0.0
+- BAM may be output **instead** of CRAM by providing `--output_bam`
 ### Added
 - v4.2.0 models, which must be used for sequencing runs performed at new 5 kHz sampling rate
 - v4.1.0 models replace v4.0.0 models and must be used for sequencing runs performed at 4 kHz sampling rate
@@ -44,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Reference is no longer required for basecalling
     - CRAM files with no alignments will be generated if `--ref` is not provided
-    - FASTQ may be output *instead* of CRAM by providing `--fastq_only`
+    - FASTQ may be output **instead** of CRAM by providing `--fastq_only`
 - PG line for converting Dorado SAM output to uBAM is no longer written to output header
 - Work directory is automatically cleaned up on successful completion to remove large intermediate files
     - Override this by including `cleanup = false` in a custom Nextflow configuration file

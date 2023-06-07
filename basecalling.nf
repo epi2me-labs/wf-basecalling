@@ -96,7 +96,17 @@ workflow wf_dorado {
         remora_model_path
         watch_path
         dorado_ext
+        output_bam
     main:
+
+        // determine output extentions
+        def align_ext = "cram"
+        def index_ext = "crai"
+        if (output_bam) {
+            align_ext = "bam"
+            index_ext = "bai"
+        }
+        output_exts = Channel.of([align_ext, index_ext]).collect()
 
         if (input_ref) {
             if (params.fastq_only) {
@@ -181,13 +191,13 @@ workflow wf_dorado {
             fail = merge_fail_calls_to_fastq(crams.fail.collect(), "fail")
         }
         else {
-            pass = merge_pass_calls(ref, crams.pass.collect(), "pass")
-            fail = merge_fail_calls(ref, crams.fail.collect(), "fail")
+            pass = merge_pass_calls(ref, crams.pass.collect(), "pass", output_exts)
+            fail = merge_fail_calls(ref, crams.fail.collect(), "fail", output_exts)
         }
-        
+
     emit:
         chunked_pass_crams = crams.pass
         pass = pass
         fail = fail
-        
+
 }

@@ -8,12 +8,13 @@ process merge_calls {
         path(ref)
         path(crams)
         val(filetag)
+        tuple val(align_ext), val(index_ext) // either [bam, bai] or [cram, crai]
     output:
-        tuple path("${params.sample_name}.${filetag}.cram"), path("${params.sample_name}.${filetag}.cram.crai")
+        tuple path("${params.sample_name}.${filetag}.${align_ext}"), path("${params.sample_name}.${filetag}.${align_ext}.${index_ext}")
     script:
     def ref_arg = ref.name != "OPTIONAL_FILE" ? "--reference ${ref}" : ""
     """
-    samtools merge ${params.sample_name}.${filetag}.cram ${crams} --no-PG -O CRAM --write-index ${ref_arg} --threads ${task.cpus}
+    samtools merge "${params.sample_name}.${filetag}.${align_ext}##idx##${params.sample_name}.${filetag}.${align_ext}.${index_ext}" ${crams} --no-PG -O ${align_ext} --write-index ${ref_arg} --threads ${task.cpus}
     """
 }
 
