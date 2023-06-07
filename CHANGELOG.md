@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - v4.1.0 models replace v4.0.0 models and must be used for sequencing runs performed at 4 kHz sampling rate
 ### Removed
 - v4.0.0 models
+### Fixed
+- Custom models were previously rejected by the workflow as `basecaller_cfg` and `remora_cfg` are validated against a list of basecalling models installed in the Dorado container.
+    - Users should now provide `--basecaller_cfg custom` and/or `--remora_cfg custom` to override models with `--basecaller_model_path` and/or `--remora_model_path` respectively.
+    - Providing `--basecaller_cfg custom` or `--remora_cfg custom` without the corresponding `--basecaller_model_path` or `--remora_model_path` will result in an error.
 
 ## [v0.6.0]
 ### Added

@@ -170,6 +170,13 @@ workflow {
     if (!params.basecaller_cfg && !params.basecaller_model_path) {
         throw new Exception(colors.red + "You must provide a basecaller profile with --basecaller_cfg <profile>" + colors.reset)
     }
+    if (params.basecaller_cfg == "custom" && !params.basecaller_model_path){
+        throw new Exception(colors.red + "You have selected a custom basecalling model but have not provided the path of the custom model with --basecaller_model_path" + colors.reset)
+    }
+    if (params.remora_cfg == "custom" && !params.remora_model_path){
+        throw new Exception(colors.red + "You have selected a custom modbasecalling model but have not provided the path of the custom model with --remora_model_path" + colors.reset)
+    }
+
     // Ensure modbase threads are set if calling them
     if ((params.remora_cfg || params.remora_model_path) && params.basecaller_basemod_threads == 0) {
         throw new Exception(colors.red + "--remora_cfg modbase aware config requires setting --basecaller_basemod_threads > 0" + colors.reset)
