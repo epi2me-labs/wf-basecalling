@@ -49,18 +49,18 @@ process cram_cache {
 process bamstats {
     label "wf_common"
     cpus params.stats_threads
-    input: 
-        path "input.cram"
+    input:
+        path "input.xam" // htsfile open will work it out
         path ref_cache
 
-    output: 
+    output:
         path "bamstats.tsv", emit: stats
         path "stats.${task.index}.json", emit: json
     script:
         String ref_path = ref_cache.name.startsWith('OPTIONAL_FILE') ? '' : "export REF_PATH=${ref_cache}/%2s/%2s/%s"
     """
     ${ref_path}
-    bamstats --threads=${task.cpus} -u input.cram > bamstats.tsv
+    bamstats --threads=${task.cpus} -u input.xam > bamstats.tsv
     fastcat_histogram.py \
             --sample_id "${params.sample_name}" \
             bamstats.tsv "stats.${task.index}.json"
@@ -188,31 +188,36 @@ workflow {
         params.basecaller_cfg, params.basecaller_model_path,
         params.remora_cfg, params.remora_model_path,
         params.watch_path,
-        params.dorado_ext
+        params.dorado_ext,
+        params.output_bam
     )
     software_versions = getVersions()
     workflow_params = getParams()
 
-    // stream stats for report 
     if (params.ref) {
         ref = params.ref
         ref = Channel.fromPath(params.ref, checkIfExists: true).first()
+    }
+
+    // create cram ref cache if there is a ref and we're outputting cram
+    if (params.ref && !params.output_bam) {
         ref_cache = cram_cache(ref)
-        }
-        else {
+    }
+    else {
         ref_cache = file("${projectDir}/data/OPTIONAL_FILE")
     }
-    
+
+    // stream stats for report
     stat = bamstats(basecaller_out.chunked_pass_crams, ref_cache)
     stats = progressive_stats.scan(stat.json)
     report = makeReport(stats, software_versions, workflow_params)
-    
+
     // dump out artifacts thanks for calling
     output(basecaller_out.pass.flatten().concat(
         basecaller_out.fail.flatten(), software_versions, workflow_params, report))
 
     //  Stop file to input folder when read_limit stop condition is met.
-    String stop_filename = "STOP.${workflow.sessionId}.${params.dorado_ext}" 
+    String stop_filename = "STOP.${workflow.sessionId}.${params.dorado_ext}"
     if (params.watch_path && params.read_limit){
         stopCondition(stats, stop_filename).first().subscribe {
             log.info "Creating STOP file: '$stop_filename'"

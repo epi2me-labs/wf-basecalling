@@ -52,6 +52,11 @@
                     "type": "boolean",
                     "description": "Output unaligned FASTQ instead of unaligned CRAM",
                     "help_text": "FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM even if fastq_only is set."
+                },
+                "output_bam": {
+                    "type": "boolean",
+                    "description": "Output unaligned BAM instead of unaligned CRAM",
+                    "help_text": "Some downstream applications do not yet support CRAM and will require a BAM file. Enabling this option will output BAM instead of CRAM. You should only use this option if you know that it is needed. Output files will be larger than the corresponding CRAM files that would have been written if this option was not enabled."
                 }
             }
         },
