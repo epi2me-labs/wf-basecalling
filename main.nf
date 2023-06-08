@@ -35,6 +35,7 @@ process getParams {
 
 
 process cram_cache {
+    label "wf_common"
     input:
         path reference
     output:
@@ -50,7 +51,7 @@ process bamstats {
     label "wf_common"
     cpus params.stats_threads
     input:
-        path "input.xam" // htsfile open will work it out
+        path "input.cram" // chunks are always CRAM
         path ref_cache
 
     output:
@@ -60,7 +61,7 @@ process bamstats {
         String ref_path = ref_cache.name.startsWith('OPTIONAL_FILE') ? '' : "export REF_PATH=${ref_cache}/%2s/%2s/%s"
     """
     ${ref_path}
-    bamstats --threads=${task.cpus} -u input.xam > bamstats.tsv
+    bamstats --threads=${task.cpus} -u input.cram > bamstats.tsv
     fastcat_histogram.py \
             --sample_id "${params.sample_name}" \
             bamstats.tsv "stats.${task.index}.json"
