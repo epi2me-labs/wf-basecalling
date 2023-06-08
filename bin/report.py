@@ -20,7 +20,7 @@ def main(args):
     """Run the entry point."""
     logger = get_named_logger("Report")
     report = labs.LabsReport(
-        "Basecalling report", "wf-basecalling-report",
+        "Basecalling report", "wf-basecalling",
         args.params, args.versions)
 
     if args.stats:
