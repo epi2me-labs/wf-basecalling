@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+### Changed
+- Bumped minimum required Nextflow version to 22.10.8
+
 ## [v0.7.1]
 ### Fixed
 - Command not found on `cram_cache` step
@@ -14,11 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Dorado to v0.3.0
 - BAM may be output **instead** of CRAM by providing `--output_bam`
 - `--help` message will list basecalling and modbasecalling models available for use with the workflow
+
 ### Added
 - v4.2.0 models, which must be used for sequencing runs performed at new 5 kHz sampling rate
 - v4.1.0 models replace v4.0.0 models and must be used for sequencing runs performed at 4 kHz sampling rate
+
 ### Removed
 - v4.0.0 models
+
 ### Fixed
 - Custom models were previously rejected by the workflow as `basecaller_cfg` and `remora_cfg` are validated against a list of basecalling models installed in the Dorado container.
     - Users should now provide `--basecaller_cfg custom` and/or `--remora_cfg custom` to override models with `--basecaller_model_path` and/or `--remora_model_path` respectively.
