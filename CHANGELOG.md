@@ -4,11 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
-### Fixed
-- Updated GitHub issue templates to force capture of more information.
+## [v0.7.2]
+### Added
+- v4.2 5mC and 6mA modification models
 
 ### Changed
+- Updated Dorado to v0.3.1
+- GPU tasks are limited to run in serial by default to avoid memory errors
+    - Users in cluster and cloud environments where GPU devices are scheduled must use `-profile discrete_gpus` to parallelise GPU work
+    - A warning will be printed if the workflow detects it is running non-local execution but the discrete_gpus profile is not enabled
+    - Additional guidance on GPU support is provided in our Quickstart
 - Bumped minimum required Nextflow version to 22.10.8
 
 ## [v0.7.1]
