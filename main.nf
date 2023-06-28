@@ -4,7 +4,7 @@ import nextflow.util.BlankSeparatedList
 
 nextflow.enable.dsl = 2
 
-include { wf_dorado } from './basecalling'
+include { wf_dorado } from './lib/signal/ingress'
 nextflow.preview.recursion=true
 
 process getVersions {
@@ -183,15 +183,18 @@ workflow {
         throw new Exception(colors.red + "--remora_cfg modbase aware config requires setting --basecaller_basemod_threads > 0" + colors.reset)
     }
     // ring ring it's for you
-    basecaller_out = wf_dorado(
-        params.input,
-        params.ref,
-        params.basecaller_cfg, params.basecaller_model_path,
-        params.remora_cfg, params.remora_model_path,
-        params.watch_path,
-        params.dorado_ext,
-        params.output_bam
-    )
+    basecaller_out = wf_dorado([
+        "input_path": params.input,
+        "input_ref": params.ref,
+        "basecaller_model_name": params.basecaller_cfg,
+        "remora_model_name": params.remora_cfg,
+        "basecaller_model_path": params.basecaller_model_path,
+        "remora_model_path": params.remora_model_path,
+        "watch_path": params.watch_path,
+        "output_bam": params.output_bam,
+        "dorado_ext": params.dorado_ext,
+        "fastq_only": params.fastq_only,
+    ])
     software_versions = getVersions()
     workflow_params = getParams()
 
