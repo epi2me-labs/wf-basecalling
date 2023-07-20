@@ -87,7 +87,7 @@ This section will be kept up to date with latest advice for running our workflow
 
 #### Prerequisites
 
-Basecalling with `Dorado` requires an NVIDIA GPU with [Volta architecture or newer](https://www.nvidia.com/en-gb/technologies/) and at least 8 GB of vRAM.
+Basecalling with `Dorado` requires an NVIDIA GPU with [Pascal architecture or newer](https://www.nvidia.com/en-gb/technologies/) and at least 8 GB of vRAM.
 
 #### Windows
 
