@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+### Added
+- RNA004 models
+- R941 v3.3 5mCG 5hmCG models
+
+### Changed
+- Updated Dorado to v0.3.2 (see https://github.com/nanoporetech/dorado/releases/tag/v0.3.2)
+- Pascal architecture GPUs are now supported
+
+
 ## [v0.7.2]
 ### Added
 - v4.2 5mC and 6mA modification models
