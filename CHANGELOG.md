@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pascal architecture GPUs are now supported
 - Bumped minimum required Nextflow version to 23.04.2
 
+### Fixed
+- `bamstats` process very slow when `output_bam` has been selected
 
 ## [v0.7.2]
 ### Added
