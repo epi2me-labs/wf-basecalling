@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated Dorado to v0.3.2 (see https://github.com/nanoporetech/dorado/releases/tag/v0.3.2)
 - Pascal architecture GPUs are now supported
+- Bumped minimum required Nextflow version to 23.04.2
 
 
 ## [v0.7.2]
