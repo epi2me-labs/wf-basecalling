@@ -203,8 +203,8 @@ workflow {
         ref = Channel.fromPath(params.ref, checkIfExists: true).first()
     }
 
-    // create cram ref cache if there is a ref and we're outputting cram
-    if (params.ref && !params.output_bam) {
+    // create cram ref cache if there is a ref (basecaller always emit cram)
+    if (params.ref) {
         ref_cache = cram_cache(ref)
     }
     else {
