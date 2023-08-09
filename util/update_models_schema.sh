@@ -27,8 +27,8 @@ else
 fi
 
 # Convert model lists to JSON arrays
-SIMPLEX_MODELS=$(${CMD_PREFIX} list-models --simplex --only-names | sed '$a\custom' | jq -Rn '[inputs]')
-MODBASE_MODELS=$(${CMD_PREFIX} list-models --modbase --only-names | sed '$a\custom' | jq -Rn '[inputs]')
+SIMPLEX_MODELS=$(${CMD_PREFIX} list-models --simplex --only-names | jq -Rn '[inputs]')
+MODBASE_MODELS=$(${CMD_PREFIX} list-models --modbase --only-names | jq -Rn '[inputs]')
 
 # Inject JSON arrays to relevant schema enum
 jq \

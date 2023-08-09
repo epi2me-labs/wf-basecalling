@@ -3,9 +3,11 @@
 import argparse
 import json
 
+from dominate.tags import p
 import ezcharts as ezc
 from ezcharts.components.ezchart import EZChart
 from ezcharts.components.reports import labs
+from ezcharts.layout.snippets import DataTable
 from ezcharts.layout.snippets import Grid
 from ezcharts.layout.snippets import Tabs
 import pandas as pd
@@ -46,6 +48,30 @@ def main(args):
                         plt.tooltip = {'trigger': 'axis'}
                         EZChart(plt, THEME)
 
+    # If pairing rates are provided, show them.
+    if args.pairings:
+        with report.add_section("Pairing summary", "Pairing summary"):
+            with open(args.pairings[0]) as f:
+                # Load data
+                data = pd.read_csv(f)
+                # Make summary
+                data_sum = data\
+                    .drop(columns=['Filename'])\
+                    .sum()\
+                    .to_frame()\
+                    .T
+                data_sum['Pairing rate'] = data_sum['Paired'] / data_sum['Simplex']
+                data_sum['Pairing rate'] = data_sum['Pairing rate'].round(4)
+                DataTable.from_pandas(
+                    data_sum, use_index=False, export=True,
+                    file_name=(
+                        f'{args.sample_name}-wf-basecalling-duplex-summary'))
+            p(
+                'Simplex: the number of initial reads.',
+                'Paired: the number of simplex reads belonging to a pair.',
+                'Duplex: the number of duplex reads.',
+            )
+
     report.write(args.report)
     logger.info(f"Report written to {args.report}.")
 
@@ -56,6 +82,10 @@ def argparser():
     parser.add_argument("report", help="Report output file")
     parser.add_argument(
         "--stats", nargs='*', help="Fastcat per-read stats file(s).")
+    parser.add_argument(
+        "--pairings", nargs='*', help="Pairing per-chunk stats.", required=False)
+    parser.add_argument(
+        "--sample_name", required=True, help="Sample name.")
     parser.add_argument(
         "--versions", required=True,
         help="directory containing CSVs containing name,version.")

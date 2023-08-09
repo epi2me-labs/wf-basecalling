@@ -6,7 +6,7 @@ process merge_calls {
     cpus params.merge_threads
     input:
         path(ref)
-        path(crams)
+        path(crams, stageAs: "filtered_*.cram")
         val(filetag)
         tuple val(align_ext), val(index_ext) // either [bam, bai] or [cram, crai]
     output:

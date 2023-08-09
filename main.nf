@@ -92,21 +92,93 @@ process progressive_stats {
 }
 
 
+// Split simplex reads belonging to a pair
+process split_xam {
+    label "wf_common"
+    cpus 2
+    input:
+        tuple path(xam), path(xam_index)
+        path(list)
+        tuple val(align_ext), val(index_ext)
+        path ref
+    output:
+        tuple path("${xam.baseName}.duplex.${align_ext}"), path("${xam.baseName}.duplex.${align_ext}.${index_ext}"), emit: xam_dx
+        tuple path("${xam.baseName}.simplex.${align_ext}"), path("${xam.baseName}.simplex.${align_ext}.${index_ext}"), emit: xam_sx
+    script:
+        String reference = ref.name.startsWith('OPTIONAL_FILE') ? '' : "--reference ${ref}"
+    """
+    samtools view ${reference} \
+        -@ ${task.cpus} \
+        -O ${align_ext} \
+        --unoutput ${xam.baseName}.duplex.${align_ext} \
+        -o ${xam.baseName}.simplex.${align_ext} \
+        -N ${list} \
+        ${xam}
+    samtools index ${xam.baseName}.simplex.${align_ext}
+    samtools index ${xam.baseName}.duplex.${align_ext}
+    """
+}
+
+
+// Compute pairing statistics progressively, if duplex enabled
+process pair_stats {
+    label "wf_common"
+    cpus 1
+    input:
+        path cram // chunks are always CRAM
+        path ref_cache
+    output:
+        path("pairs.${task.index}.csv"), emit: csv
+    script:
+        String ref_path = ref_cache.name.startsWith('OPTIONAL_FILE') ? '' : "export REF_PATH=${ref_cache}/%2s/%2s/%s"
+    """
+    ${ref_path}
+    duplex_stats.py ${cram} pairs.${task.index}.csv
+    """
+}
+
+
+process progressive_pairings {
+    label "wf_common"
+    maxForks 1
+    cpus 1
+    input: 
+        path pairings
+    output:
+        path("pairing_stats.${task.index}")
+    script:
+        def new_input = pairings instanceof BlankSeparatedList ? pairings.first() : pairings
+        def state = pairings instanceof BlankSeparatedList ? pairings.last() : "NOSTATE"
+        def output = "pairing_stats.${task.index}"
+    """
+    cat ${new_input} > pairing_stats.${task.index}
+    if [ -e ${state} ]; then
+        awk 'NR>1 {print \$0}' ${state} >> pairing_stats.${task.index}
+    fi
+    """
+}
+
+
+// Make reports
 process makeReport {
     label "wf_common"
     input:
         path per_read_stats
+        path pairings
         path "versions/*"
         path "params.json"
     output:
         path "wf-basecalling-*.html"
     script:
         String report_name = "wf-basecalling-report.html"
+        def report_pairings = params.duplex ? "--pairings ${pairings}" : ""
     """
     report.py $report_name \
+        --sample_name $params.sample_name \
         --versions versions \
         --stats $per_read_stats \
-        --params params.json
+        --params params.json \
+        $report_pairings
     """
 }
 
@@ -171,16 +243,21 @@ workflow {
     if (!params.basecaller_cfg && !params.basecaller_model_path) {
         throw new Exception(colors.red + "You must provide a basecaller profile with --basecaller_cfg <profile>" + colors.reset)
     }
-    if (params.basecaller_cfg == "custom" && !params.basecaller_model_path){
-        throw new Exception(colors.red + "You have selected a custom basecalling model but have not provided the path of the custom model with --basecaller_model_path" + colors.reset)
+    if (params.basecaller_cfg && params.basecaller_model_path) {
+        log.warn("--basecaller_cfg and --basecaller_model_path both provided. Custom remora model path (${params.basecaller_cfg}) will override enum choice (${params.basecaller_model_path}).")
     }
-    if (params.remora_cfg == "custom" && !params.remora_model_path){
-        throw new Exception(colors.red + "You have selected a custom modbasecalling model but have not provided the path of the custom model with --remora_model_path" + colors.reset)
+    if (params.remora_cfg && params.remora_cfg_path) {
+        log.warn("--remora_cfg and --remora_model_path both provided. Custom remora model path (${params.remora_cfg_path}) will override enum choice (${params.remora_cfg}).")
     }
 
     // Ensure modbase threads are set if calling them
-    if ((params.remora_cfg || params.remora_model_path) && params.basecaller_basemod_threads == 0) {
-        throw new Exception(colors.red + "--remora_cfg modbase aware config requires setting --basecaller_basemod_threads > 0" + colors.reset)
+    if (params.remora_cfg || params.remora_model_path) {
+        if (params.duplex) {
+            throw new Exception(colors.red + "--duplex cannot call modified bases.\nUnset --remora_cfg/--remora_model_path to run duplex basecalling, or unset --duplex to run simplex modified basecalling." + colors.reset)
+        }
+        if (params.basecaller_basemod_threads == 0) {
+            throw new Exception(colors.red + "--remora_cfg modbase aware config requires setting --basecaller_basemod_threads > 0" + colors.reset)
+        }
     }
     // ring ring it's for you
     basecaller_out = wf_dorado([
@@ -199,8 +276,9 @@ workflow {
     workflow_params = getParams()
 
     if (params.ref) {
-        ref = params.ref
         ref = Channel.fromPath(params.ref, checkIfExists: true).first()
+    } else {
+        ref = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
     }
 
     // create cram ref cache if there is a ref (basecaller always emit cram)
@@ -208,17 +286,45 @@ workflow {
         ref_cache = cram_cache(ref)
     }
     else {
-        ref_cache = file("${projectDir}/data/OPTIONAL_FILE")
+        ref_cache = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
     }
 
     // stream stats for report
     stat = bamstats(basecaller_out.chunked_pass_crams, ref_cache)
     stats = progressive_stats.scan(stat.json)
-    report = makeReport(stats, software_versions, workflow_params)
+    // stream pair stats for report
+    pairings = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
+    if (params.duplex){
+        // Separate the simplex reads belonging to a pair from the
+        // duplex and simplex reads.
+        // Save the simplex reads in a duplex in a separate xam file.
+        split_xam(
+            basecaller_out.pass.concat(
+                basecaller_out.fail
+            ),
+            basecaller_out.simplex_list, 
+            basecaller_out.output_exts,
+            ref
+            )
+
+        // Create emission channel
+        emit_xam = split_xam.out.xam_dx.flatten()
+            .concat(split_xam.out.xam_sx.flatten())
+            .concat(basecaller_out.summary)
+
+        // Then, compute the stats on the duplex
+        pairs = pair_stats(basecaller_out.chunked_pass_crams, ref_cache)
+        pairings = progressive_pairings.scan(pairs.csv)
+    } else {
+        emit_xam = basecaller_out.pass.flatten()
+            .concat(basecaller_out.fail.flatten())
+    }
+    // Make the report
+    report = makeReport(stats, pairings, software_versions, workflow_params)
+
 
     // dump out artifacts thanks for calling
-    output(basecaller_out.pass.flatten().concat(
-        basecaller_out.fail.flatten(), software_versions, workflow_params, report))
+    output(emit_xam.concat(pairings.last(), software_versions, workflow_params, report, ref, ref_cache))
 
     //  Stop file to input folder when read_limit stop condition is met.
     String stop_filename = "STOP.${workflow.sessionId}.${params.dorado_ext}"

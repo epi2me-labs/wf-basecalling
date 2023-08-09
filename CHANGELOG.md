@@ -4,15 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [v1.0.0]
 ### Added
 - RNA004 models
 - R941 v3.3 5mCG 5hmCG models
+- Duplex calling with option `--duplex`
+    - Note that duplex calling is not optimised for streaming basecalling with `--watch_path` and may lead to lower duplex yield.
+    - Duplex basecalling is currently not compatible with modified basecalling.
 
 ### Changed
 - Updated Dorado to v0.3.2 (see https://github.com/nanoporetech/dorado/releases/tag/v0.3.2)
 - Pascal architecture GPUs are now supported
 - Bumped minimum required Nextflow version to 23.04.2
+- Users no longer need to provide `--basecaller_cfg custom` and/or `--remora_cfg custom` to override models with `--basecaller_model_path` and/or `--remora_model_path` respectively.
 
 ### Fixed
 - `bamstats` process very slow when `output_bam` has been selected
