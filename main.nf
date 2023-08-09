@@ -246,8 +246,8 @@ workflow {
     if (params.basecaller_cfg && params.basecaller_model_path) {
         log.warn("--basecaller_cfg and --basecaller_model_path both provided. Custom remora model path (${params.basecaller_cfg}) will override enum choice (${params.basecaller_model_path}).")
     }
-    if (params.remora_cfg && params.remora_cfg_path) {
-        log.warn("--remora_cfg and --remora_model_path both provided. Custom remora model path (${params.remora_cfg_path}) will override enum choice (${params.remora_cfg}).")
+    if (params.remora_cfg && params.remora_model_path) {
+        log.warn("--remora_cfg and --remora_model_path both provided. Custom remora model path (${params.remora_model_path}) will override enum choice (${params.remora_cfg}).")
     }
 
     // Ensure modbase threads are set if calling them
