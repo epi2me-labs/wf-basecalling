@@ -1,4 +1,7 @@
 import ArgumentParser
+import java.lang.Math
+import java.util.regex.Pattern
+import java.util.regex.Matcher
 
 include {
     merge_calls as merge_pass_calls;
@@ -39,21 +42,23 @@ process dorado {
         tuple val(basecaller_cfg), path("dorado_model"), val(basecaller_model_override)
         tuple val(remora_cfg), path("remora_model"), val(remora_model_override)
     output:
-        path("${chunk_idx}.ubam")
+        path("${chunk_idx}.ubam"), emit: ubams
     script:
     def remora_model = remora_model_override ? "remora_model" : "\${DRD_MODELS_PATH}/${remora_cfg}"
-    def remora_args = (params.basecaller_basemod_threads > 0 && (params.remora_cfg || remora_model_override)) ? "--modified-bases-models ${remora_model}" : ''
+    def remora_args = (params.basecaller_basemod_threads > 0 && (params.remora_cfg || remora_model_override)) && !params.duplex ? "--modified-bases-models ${remora_model}" : ''
     def model_arg = basecaller_model_override ? "dorado_model" : "\${DRD_MODELS_PATH}/${basecaller_cfg}"
     def basecaller_args = params.basecaller_args ?: ''
+    def caller = params.duplex ? "duplex" : "basecaller"
     // we can't set maxForks dynamically, but we can detect it might be wrong!
     if (task.executor != "local" && task.maxForks == 1) {
         log.warn "Non-local workflow execution detected but GPU tasks are currently configured to run in serial, perhaps you should be using '-profile discrete_gpus' to parallelise GPU tasks for better performance?"
     }
+    // If no pairs list, run vanilla duplex
     """
     set +e
     source /opt/nvidia/entrypoint.d/*-gpu-driver-check.sh # runtime driver check msg
     set -e
-    dorado basecaller \
+    dorado ${caller} \
         ${model_arg} . \
         ${remora_args} \
         ${basecaller_args} \
@@ -112,6 +117,47 @@ process make_mmi {
 }
 
 
+
+// Compute summaries from the raw unmapped bam files
+process dorado_summary {
+    label "wf_basecalling"
+    cpus 1
+    input:
+        path xam // chunks are always CRAM
+    output:
+        path("${xam.baseName}.summary.tsv.gz"), emit: summary
+    script:
+    """
+    dorado summary ${xam} | gzip -c > ${xam.baseName}.summary.tsv.gz
+    """
+}
+
+
+// Create list of simplex reads
+process combine_dorado_summaries {
+    label "wf_basecalling"
+    cpus 1
+    input:
+        path tsvs // individual summaries
+    output:
+        path("${params.sample_name}.list.txt"), emit: list
+        path("${params.sample_name}.summary.tsv.gz"), emit: summary
+    shell:
+    '''
+    n=0
+    for fname in !{tsvs}; do
+        if [ $n -eq 0 ]; then
+            n=1
+            zcat $fname
+        else
+            zcat $fname | awk 'NR>1 {print}'
+        fi
+    done | gzip -c > !{params.sample_name}.summary.tsv.gz
+    zcat !{params.sample_name}.summary.tsv.gz | awk '$1~";" {print $1}' | sed 's/;/\\n/g' > !{params.sample_name}.list.txt 
+    '''
+}
+
+
 workflow wf_dorado {
     take:
         arguments
@@ -160,6 +206,14 @@ workflow wf_dorado {
         String stop_filename = "STOP.${workflow.sessionId}.${margs.dorado_ext}" // use the sessionId so resume works
         existing_pod5_chunks = Channel
             .fromPath(margs.input_path + "**.${margs.dorado_ext}", checkIfExists: true)
+
+        // Define naming patterns
+        // The default naming is: PAN00000_pass__abc012d4_wxy789z0_0.pod5
+        def pattern_long = /[A-Z]{3}[0-9]{5}_(pass|fail)__[0-9a-zA-Z]{8}_[A-Za-z0-9]{8}_[0-9]*/
+        // The alternative naming is: PAN00000_abc012d4_0.pod5
+        def pattern_short = /[A-Z]{3}[0-9]{5}_[0-9a-zA-Z]{8}_[0-9]*/
+
+        // Check if it is a watched path
         if (margs.watch_path) {
             // watch input path for more pod5s
             if (params.read_limit) {
@@ -170,36 +224,93 @@ workflow wf_dorado {
                 log.warn "Watching ${margs.input_path} for new ${margs.dorado_ext} files indefinitely."
                 log.warn "To stop this workflow create: ${margs.input_path}/${stop_filename}"
             }
+            // Warn if duplex requested during streaming
+            if (params.duplex){
+                log.warn "Streamed duplex calling cannot be optimized, and might lead to lower duplex rates."
+            }
+            // Define watch path
             watch_pod5_chunks = Channel
                 .watchPath("${margs.input_path}/**.${margs.dorado_ext}")
                 .until{ it.name == stop_filename }
-            pod5_chunks = existing_pod5_chunks
+            // Create list of pod5s to process
+            ready_pod5_chunks = existing_pod5_chunks
                 .concat(watch_pod5_chunks)
                 .buffer(size:params.basecaller_chunk_size, remainder:true)
                 .map { tuple(chunk_idx++, it) }
         } else {
-            pod5_chunks = existing_pod5_chunks
-                .buffer(size:params.basecaller_chunk_size, remainder:true)
-                .map { tuple(chunk_idx++, it) }
+            // Check if a pod5 matches the long pattern, the short pattern or
+            // no pattern. After that, branch them in separate subchannel to
+            // be processed separately to extract the pieces of information needed
+            // to define the best grouping.
+            existing_pod5_chunks
+                .branch{
+                    pattern_long: it.baseName ==~ pattern_long
+                    pattern_short: it.baseName ==~ pattern_short
+                    no_pattern: true
+                }.set{branched_patterns}
+            // Check if there are files with unknown naming patterns and log that
+            if (params.duplex) {
+                branched_patterns.no_pattern.first().subscribe { log.warn "Detected input files with an unknown naming pattern. These will be basecalled, but duplex rates may be impacted." }
+            }
+            // Split the name keeping the flow cell, run, pass/fail and pod5 index.
+            branched_patterns.pattern_long
+                // If the pattern is long, extract flow cell, run, pass/fail and index
+                .map{filename -> 
+                    fields = filename.baseName.split("_")
+                    [fields[-1] as int, fields[0], fields[3], fields[1], filename]
+                }
+                .mix(
+                    branched_patterns.pattern_short
+                        // If the pattern is short, extract flow cell, run and index, and set all files as pass
+                        .map{ filename ->
+                            fields = filename.baseName.split("_")
+                            [fields[-1] as int, fields[0], fields[1], 'pass', filename]
+                        }
+                )
+                // Computed chunk index as floored pod5 index / chunk size value, and then concatenate them. 
+                // If not pass is provided, treat all as pass. The chunk number goes first to perform chunk
+                // clustering appropriately.
+                .map{ pod5_index, cell_id, run_id, pass, pod5 ->
+                    [Math.floor(pod5_index/params.basecaller_chunk_size), cell_id, run_id, pass, pod5]
+                }
+                // Group them by chunk, flowcell, run and pass/fail
+                .groupTuple(
+                    by: [0, 1, 2, 3]
+                )
+                // Emit only files for chunking
+                .map{pod5_index, cell_id, run_id, pass, pod5s -> pod5s}
+                // Add back pod5s not following naming pattern
+                .mix(
+                    branched_patterns.no_pattern
+                        .buffer(size:params.basecaller_chunk_size, remainder: true)
+                )
+                // Replace the chunk number with a new progressive numbering
+                .map { pod5s -> [chunk_idx++, pod5s] }
+                // Set the channel
+                .set{ready_pod5_chunks}
         }
 
 
         called_bams = dorado(
-            pod5_chunks,
+            ready_pod5_chunks,
             tuple(margs.basecaller_model_name, basecaller_model, basecaller_model_override),
-            tuple(margs.remora_model_name, remora_model, remora_model_override),
+            tuple(margs.remora_model_name, remora_model, remora_model_override)
         )
 
+        // Compute summary
+        dorado_summary(called_bams) | collect | combine_dorado_summaries
+
+        // Run filtering or mapping
         if (margs.input_ref) {
             // make mmi for faster alignment
             mmi_ref = make_mmi(ref)
 
             // align, qscore_filter and sort
-            crams = align_and_qsFilter(mmi_ref, ref, called_bams)
+            crams = align_and_qsFilter(mmi_ref, ref, called_bams.ubams)
         }
         else {
             // skip alignment and just collate pass and fail
-            crams = qsFilter(called_bams)
+            crams = qsFilter(called_bams.ubams)
         }
 
         // merge passes and fails
@@ -218,5 +329,7 @@ workflow wf_dorado {
         chunked_pass_crams = crams.pass
         pass = pass
         fail = fail
-
+        output_exts = output_exts
+        summary = combine_dorado_summaries.out.summary
+        simplex_list = combine_dorado_summaries.out.list
 }

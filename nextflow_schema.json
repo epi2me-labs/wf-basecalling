@@ -15,12 +15,14 @@
             "description": "Parameters for finding and handling input data for analysis.",
             "properties": {
                 "input": {
+                    "title": "Input directory",
                     "type": "string",
                     "format": "directory-path",
                     "description": "Directory containing FAST5 (or POD5) signal for basecalling.",
                     "help_text": "This directory will be searched recursively. All FAST5 or POD5 files (depending on which extension you select in the Basecalling Options) in this directory or any subdirectory (no matter how deep) will be basecalled."
                 },
                 "ref": {
+                    "title": "Reference FASTA file",
                     "type": "string",
                     "format": "file-path",
                     "description": "Optional reference FASTA file to align basecalled reads to.",
@@ -38,6 +40,7 @@
             "description": "Parameters for saving and naming workflow outputs.",
             "properties": {
                 "out_dir": {
+                    "title": "Output directory",
                     "type": "string",
                     "default": "output",
                     "format": "directory-path",
@@ -49,11 +52,13 @@
                     "description": "Sample name to prefix file names of workflow outputs."
                 },
                 "fastq_only": {
+                    "title": "Output FASTQ not CRAM",
                     "type": "boolean",
                     "description": "Output unaligned FASTQ instead of unaligned CRAM",
                     "help_text": "FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM even if fastq_only is set."
                 },
                 "output_bam": {
+                    "title": "Output BAM not CRAM",
                     "type": "boolean",
                     "description": "Output unaligned BAM instead of unaligned CRAM",
                     "help_text": "Some downstream applications do not yet support CRAM and will require a BAM file. Enabling this option will output BAM instead of CRAM. You should only use this option if you know that it is needed. Output files will be larger than the corresponding CRAM files that would have been written if this option was not enabled."
@@ -68,9 +73,10 @@
             "help_text": "This section contains options that should be checked before basecalling.",
             "properties": {
                 "basecaller_cfg": {
+                    "title": "Basecaller configuration",
                     "type": "string",
                     "description": "Name of the model to use for converting signal.",
-                    "help_text": "Required for basecalling. The model list only shows models that are compatible with this workflow. You should select 'custom' to override the basecaller_cfg with basecaller_model_path.",
+                    "help_text": "Required for basecalling. The model list only shows models that are compatible with this workflow.",
                     "enum": [
                         "dna_r10.4.1_e8.2_260bps_fast@v4.1.0",
                         "dna_r10.4.1_e8.2_260bps_hac@v4.1.0",
@@ -86,14 +92,21 @@
                         "dna_r9.4.1_e8_sup@v3.3",
                         "rna004_130bps_fast@v3",
                         "rna004_130bps_hac@v3",
-                        "rna004_130bps_sup@v3",
-                        "custom"
+                        "rna004_130bps_sup@v3"
                     ]
                 },
+                "duplex": {
+                    "title": "Duplex calling",
+                    "type": "boolean",
+                    "description": "Run the basecaller in duplex mode.",
+                    "default": false,
+                    "help_text": "By default, the workflow conducts simplex basecalling. If you used a chemistry and flowcell combination that supported duplex reads, you should switch this option on. Currently, duplex basecalling is not compatible with modified basecalling. Additionally, duplex basecalling within this workflow is reliant on internal optimisations to organise input files for better duplex rates, which is not possible when using streaming basecalling; therefore duplex combined with the watch_path option could lead to lower duplex rates."
+                },
                 "remora_cfg": {
+                    "title": "Modified basecalling model configuration",
                     "type": "string",
                     "description": "Name of the model to use for calling modified bases.",
-                    "help_text": "Required for calling modified bases while basecalling. The model list only shows models that are compatible with this workflow. You should select 'custom' to override the remora_cfg with remora_model_path.",
+                    "help_text": "Required for calling modified bases while basecalling. The model list only shows models that are compatible with this workflow.",
                     "enum": [
                         "dna_r10.4.1_e8.2_400bps_fast@v4.1.0_5mCG_5hmCG@v2",
                         "dna_r10.4.1_e8.2_400bps_fast@v4.2.0_5mCG_5hmCG@v2",
@@ -108,29 +121,41 @@
                         "dna_r9.4.1_e8_hac@v3.3_5mCG@v0",
                         "dna_r9.4.1_e8_hac@v3.3_5mCG_5hmCG@v0",
                         "dna_r9.4.1_e8_sup@v3.3_5mCG@v0",
-                        "dna_r9.4.1_e8_sup@v3.3_5mCG_5hmCG@v0",
-                        "custom"
+                        "dna_r9.4.1_e8_sup@v3.3_5mCG_5hmCG@v0"
                     ]
                 },
                 "dorado_ext": {
+                    "title": "Input file format",
                     "type": "string",
-                    "description": "File extension for Dorado input.",
+                    "description": "File extension for Dorado inputs.",
                     "help_text": "Set this to fast5 if you have not converted your fast5 to pod5. It is recommended to [convert existing fast5 files to pod5 for use with Dorado](https://github.com/nanoporetech/pod5-file-format/blob/master/python/README.md#pod5-convert-from-fast5).",
                     "default": "fast5",
                     "enum": [
                         "fast5",
                         "pod5"
                     ]
-                },
-                "basecaller_basemod_threads": {
-                    "type": "number",
-                    "default": 2,
-                    "description": "Number of threads to use for base modification calling.",
-                    "help_text": "You must set this to > 0 when using a modbase aware model. Modbase calling does not require much additional CPU and should be set carefully when using GPU servers with a small number of CPUs per GPU."
                 }
             },
-            "required": [
-                "basecaller_cfg"
+            "allOf": [
+                {
+                    "required": [
+                        "dorado_ext"
+                    ]
+                },
+                {
+                    "oneOf": [
+                        {
+                            "required": [
+                                "basecaller_cfg"
+                            ]
+                        },
+                        {
+                            "required": [
+                                "basecaller_model_path"
+                            ]
+                        }
+                    ]
+                }
             ]
         },
         "advanced_basecalling_options": {
@@ -150,6 +175,7 @@
                     "type": "number",
                     "default": 25,
                     "description": "Number of input files to basecall in each basecalling process.",
+                    "minimum": 1,
                     "hidden": true
                 },
                 "cuda_device": {
@@ -170,12 +196,17 @@
                     "description": "Override the named remora model with a custom remora model",
                     "help_text": "For typical use, users should set --remora_cfg which will use a named model from inside the container. Experimental or custom models will not be available in the container and can be loaded from the host with --remora_model_path."
                 },
+                "basecaller_basemod_threads": {
+                    "type": "number",
+                    "default": 2,
+                    "description": "Number of threads to use for base modification calling.",
+                    "help_text": "You must set this to > 0 when using a modbase aware model. Modbase calling does not require much additional CPU and should be set carefully when using GPU servers with a small number of CPUs per GPU."
+                },
                 "basecaller_args": {
                     "type": "string",
                     "description": "Additional command line arguments to pass to the basecaller process."
                 }
-            },
-            "required": []
+            }
         },
         "multiprocessing_options": {
             "title": "Multiprocessing Options",
@@ -218,14 +249,15 @@
             "default": "",
             "properties": {
                 "watch_path": {
+                    "title": "Basecall while sequencing ('watch path')",
                     "type": "boolean",
                     "description": "Enable to continuously watch the input directory for new input files. Reads will be analysed as they appear.",
-                    "help_text": "This option enables the use of Nextflow's directory watching feature to constantly monitor input directories for new files. As soon as files are written by an external process Nextflow will begin analysing these files. The workflow will accumulate data over time to produce an updating report."
+                    "help_text": "This option enables the use of Nextflow's directory watching feature to constantly monitor input directories for new files. As soon as files are written by an external process Nextflow will begin analysing these files. The workflow will accumulate data over time to produce an updating report. Real time analysis of duplex data may lead to lower duplex rates than what would have been obtained by running basecalling after sequencing."
                 },
                 "read_limit": {
                     "type": "integer",
-                    "description": "Stop processing data when a particular number of reads have been analysed. By default the workflow will run indefinitely.",
-                    "help_text": "Sets the upper bound on the number of reads that will be analysed before the workflow is automatically stopped and no more data is analysed."
+                    "description": "Stop processing data when a particular number of reads have been analysed.",
+                    "help_text": "By default the workflow will run indefinitely when using the real time watch path option. This will set the upper bound on the number of reads that will be analysed before the workflow is automatically stopped and no more data is analysed."
                 }
             }
         },
@@ -267,13 +299,13 @@
             "$ref": "#/definitions/basecalling_options"
         },
         {
+            "$ref": "#/definitions/real_time_analysis_options"
+        },
+        {
             "$ref": "#/definitions/advanced_basecalling_options"
         },
         {
             "$ref": "#/definitions/multiprocessing_options"
-        },
-        {
-            "$ref": "#/definitions/real_time_analysis_options"
         },
         {
             "$ref": "#/definitions/generic_options"

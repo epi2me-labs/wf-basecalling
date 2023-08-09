@@ -60,7 +60,14 @@ nextflow run epi2me-labs/wf-basecalling \
 ### Choosing a model
 
 The `dorado` repository has [a table of available models](https://github.com/nanoporetech/dorado#available-basecalling-models) to choose for `--basecaller_cfg` and `--remora_cfg`.
-Please note that wf-basecalling does not currently support duplex stereo basecalling.
+
+### Duplex calling
+
+wf-basecalling supports [duplex calling](https://github.com/nanoporetech/dorado#duplex), which is enabled with the `--duplex` option. If you used a chemistry and flowcell combination that supported duplex reads, you should switch this option on. 
+
+There are some caveats to duplex calling, namely:
+* Duplex mode cannot be used when calling modified bases. You must either run simplex basecalling with modified bases; or duplex calling without modified bases.
+* Duplex mode with wf-basecalling is reliant on internal optimisations to organise input files for better duplex rates, which is not possible when using streaming basecalling; therefore duplex combined with the `--watch_path` option could lead to lower duplex rates than what would be achieved running the algorithm after sequencing is completed.
 
 ### Updating the workflow
 
@@ -77,6 +84,12 @@ The primary outputs of the workflow include:
 * two sorted, indexed CRAMs of basecalls, aligned to the provided reference, with reads separated by their quality score
     * `<sample_name>.pass.cram` contains reads with `qscore >= threshold`
     * `<sample_name>.fail.cram` contains reads with `qscore < threshold`
+
+If `duplex` calling is enabled, the workflow will generate four CRAMs instead:
+* `<sample_name>.pass.duplex.cram` contains duplex reads + simplex reads not beloging to a pair with `qscore >= threshold`
+* `<sample_name>.fail.duplex.cram` contains duplex reads + simplex reads not beloging to a pair with `qscore < threshold`
+* `<sample_name>.pass.simplex.cram` contains simplex reads beloging to a pair with `qscore >= threshold`
+* `<sample_name>.fail.simplex.cram` contains simplex reads beloging to a pair with `qscore < threshold`
 
 Take care to retain the input reference as CRAM files cannot be read without the corresponding reference!
 
