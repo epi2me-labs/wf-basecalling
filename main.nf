@@ -249,6 +249,9 @@ workflow {
     if (params.remora_cfg && params.remora_model_path) {
         log.warn("--remora_cfg and --remora_model_path both provided. Custom remora model path (${params.remora_model_path}) will override enum choice (${params.remora_cfg}).")
     }
+    if (params.duplex && params.dorado_ext != 'pod5') {
+        throw new Exception(colors.red + "Duplex currently requires POD5 files and is not compatible with FAST5. Please convert your FAST5 inputs to POD5 format using the pod5 toolkit or via pod5.nanoporetech.com, and try again." + colors.reset)
+    }
 
     // Ensure modbase threads are set if calling them
     if (params.remora_cfg || params.remora_model_path) {
@@ -294,7 +297,7 @@ workflow {
     stats = progressive_stats.scan(stat.json)
     // stream pair stats for report
     pairings = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
-    if (params.duplex){
+    if (params.duplex && params.dorado_ext == 'pod5'){
         // Separate the simplex reads belonging to a pair from the
         // duplex and simplex reads.
         // Save the simplex reads in a duplex in a separate xam file.
