@@ -47,7 +47,9 @@ wf-basecalling supports [duplex calling](https://github.com/nanoporetech/dorado#
 
 There are some caveats to duplex calling, namely:
 * Duplex mode cannot be used when calling modified bases. You must either run simplex basecalling with modified bases; or duplex calling without modified bases.
+* Duplex mode requires POD5 input. You must [convert your files with the pod5 toolkit](https://pod5-file-format.readthedocs.io/en/latest/docs/tools.html#pod5-convert-fast5) or via [pod5.nanoporetech.com](https://pod5.nanoporetech.com/).
 * Duplex mode with wf-basecalling is reliant on internal optimisations to organise input files for better duplex rates, which is not possible when using streaming basecalling; therefore duplex combined with the `--watch_path` option could lead to lower duplex rates than what would be achieved running the algorithm after sequencing is completed.
+
 
 ### Updating the workflow
 

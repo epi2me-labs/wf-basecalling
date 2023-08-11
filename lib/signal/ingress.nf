@@ -298,7 +298,14 @@ workflow wf_dorado {
         )
 
         // Compute summary
-        dorado_summary(called_bams) | collect | combine_dorado_summaries
+        if (params.dorado_ext == 'pod5' && params.duplex){
+            dorado_summary(called_bams) | collect | combine_dorado_summaries    
+            summary = combine_dorado_summaries.out.summary
+            simplex_list = combine_dorado_summaries.out.list
+        } else {
+            summary = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
+            simplex_list = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
+        }
 
         // Run filtering or mapping
         if (margs.input_ref) {
@@ -330,6 +337,6 @@ workflow wf_dorado {
         pass = pass
         fail = fail
         output_exts = output_exts
-        summary = combine_dorado_summaries.out.summary
-        simplex_list = combine_dorado_summaries.out.list
+        summary = summary
+        simplex_list = simplex_list
 }
