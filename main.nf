@@ -98,7 +98,6 @@ process split_xam {
     cpus 2
     input:
         tuple path(xam), path(xam_index)
-        path(list)
         tuple val(align_ext), val(index_ext)
         path ref
     output:
@@ -110,9 +109,9 @@ process split_xam {
     samtools view ${reference} \
         -@ ${task.cpus} \
         -O ${align_ext} \
+        --tag dx:-1 \
         --unoutput ${xam.baseName}.duplex.${align_ext} \
         -o ${xam.baseName}.simplex.${align_ext} \
-        -N ${list} \
         ${xam}
     samtools index ${xam.baseName}.simplex.${align_ext}
     samtools index ${xam.baseName}.duplex.${align_ext}
@@ -305,7 +304,6 @@ workflow {
             basecaller_out.pass.concat(
                 basecaller_out.fail
             ),
-            basecaller_out.simplex_list, 
             basecaller_out.output_exts,
             ref
             )
