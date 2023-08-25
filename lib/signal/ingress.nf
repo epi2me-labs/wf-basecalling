@@ -140,7 +140,6 @@ process combine_dorado_summaries {
     input:
         path tsvs // individual summaries
     output:
-        path("${params.sample_name}.list.txt"), emit: list
         path("${params.sample_name}.summary.tsv.gz"), emit: summary
     shell:
     '''
@@ -153,7 +152,6 @@ process combine_dorado_summaries {
             zcat $fname | awk 'NR>1 {print}'
         fi
     done | gzip -c > !{params.sample_name}.summary.tsv.gz
-    zcat !{params.sample_name}.summary.tsv.gz | awk '$1~";" {print $1}' | sed 's/;/\\n/g' > !{params.sample_name}.list.txt 
     '''
 }
 
@@ -301,10 +299,8 @@ workflow wf_dorado {
         if (params.dorado_ext == 'pod5' && params.duplex){
             dorado_summary(called_bams) | collect | combine_dorado_summaries    
             summary = combine_dorado_summaries.out.summary
-            simplex_list = combine_dorado_summaries.out.list
         } else {
             summary = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
-            simplex_list = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
         }
 
         // Run filtering or mapping
@@ -338,5 +334,4 @@ workflow wf_dorado {
         fail = fail
         output_exts = output_exts
         summary = summary
-        simplex_list = simplex_list
 }
