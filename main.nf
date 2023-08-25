@@ -161,6 +161,7 @@ process progressive_pairings {
 // Make reports
 process makeReport {
     label "wf_common"
+    publishDir "${params.out_dir}", mode: 'copy', pattern: "*"
     input:
         path per_read_stats
         path pairings
@@ -213,7 +214,7 @@ process stopCondition {
 // See https://github.com/nextflow-io/nextflow/issues/1636
 // This is the only way to publish files from a workflow whilst
 // decoupling the publish from the process steps.
-process output {
+process output_stream {
     // publish inputs to output directory
     label "wf_basecalling"
     publishDir "${params.out_dir}", mode: 'copy', pattern: "*"
@@ -221,6 +222,34 @@ process output {
         path fname
     output:
         path fname
+    """
+    echo "Writing output files."
+    """
+}
+
+// Output the last report, once each of them finish
+process output_last {
+    // publish inputs to output directory
+    label "wf_basecalling"
+    publishDir "${params.out_dir}", mode: 'copy', pattern: "*"
+    input:
+        path fname
+    output:
+        path fname
+    """
+    echo "Writing output files."
+    """
+}
+
+// CW-2569: Emit pod5s if requested, in a new directory
+process output_pod5s {
+    // publish inputs to output directory
+    label "wf_basecalling"
+    publishDir "${params.out_dir}/pod5s/", mode: 'copy', pattern: "*"
+    input:
+        path pod5s
+    output:
+        path pod5s
     """
     echo "Writing output files."
     """
@@ -249,7 +278,7 @@ workflow {
         log.warn("--remora_cfg and --remora_model_path both provided. Custom remora model path (${params.remora_model_path}) will override enum choice (${params.remora_cfg}).")
     }
     if (params.duplex && params.dorado_ext != 'pod5') {
-        throw new Exception(colors.red + "Duplex currently requires POD5 files and is not compatible with FAST5. Please convert your FAST5 inputs to POD5 format using the pod5 toolkit or via pod5.nanoporetech.com, and try again." + colors.reset)
+        log.warn("Duplex currently requires POD5 files and is not compatible with FAST5. The workflow will convert the FAST5 inputs to POD5 format automatically.")
     }
 
     // Ensure modbase threads are set if calling them
@@ -296,7 +325,7 @@ workflow {
     stats = progressive_stats.scan(stat.json)
     // stream pair stats for report
     pairings = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
-    if (params.duplex && params.dorado_ext == 'pod5'){
+    if (params.duplex){
         // Separate the simplex reads belonging to a pair from the
         // duplex and simplex reads.
         // Save the simplex reads in a duplex in a separate xam file.
@@ -321,11 +350,15 @@ workflow {
             .concat(basecaller_out.fail.flatten())
     }
     // Make the report
-    report = makeReport(stats, pairings, software_versions, workflow_params)
-
+    report = makeReport(stats, pairings, software_versions, workflow_params) | last | collect | output_last
 
     // dump out artifacts thanks for calling
-    output(emit_xam.concat(pairings.last(), software_versions, workflow_params, report, ref, ref_cache))
+    output_stream(emit_xam.concat(pairings.last(), software_versions, workflow_params, ref, ref_cache))
+
+    // dump pod5s if requested
+    if (params.duplex && params.dorado_ext == 'fast5' && params.output_pod5){
+        output_pod5s(basecaller_out.converted_pod5s)
+    }
 
     //  Stop file to input folder when read_limit stop condition is met.
     String stop_filename = "STOP.${workflow.sessionId}.${params.dorado_ext}"

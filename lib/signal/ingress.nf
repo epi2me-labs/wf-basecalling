@@ -43,12 +43,16 @@ process dorado {
         tuple val(remora_cfg), path("remora_model"), val(remora_model_override)
     output:
         path("${chunk_idx}.ubam"), emit: ubams
+        path("converted/*.pod5"), emit: converted_pod5s, optional: true
     script:
     def remora_model = remora_model_override ? "remora_model" : "\${DRD_MODELS_PATH}/${remora_cfg}"
     def remora_args = (params.basecaller_basemod_threads > 0 && (params.remora_cfg || remora_model_override)) && !params.duplex ? "--modified-bases-models ${remora_model}" : ''
     def model_arg = basecaller_model_override ? "dorado_model" : "\${DRD_MODELS_PATH}/${basecaller_cfg}"
     def basecaller_args = params.basecaller_args ?: ''
     def caller = params.duplex ? "duplex" : "basecaller"
+    // CW-2569: delete pod5 is not required them to be emitted
+    def signal_path = (params.duplex && params.dorado_ext == 'fast5') ? "converted/" : "."
+    def delete_pod5s = !params.output_pod5 ? "rm -r converted/" : "echo 'No cleanup'"
     // we can't set maxForks dynamically, but we can detect it might be wrong!
     if (task.executor != "local" && task.maxForks == 1) {
         log.warn "Non-local workflow execution detected but GPU tasks are currently configured to run in serial, perhaps you should be using '-profile discrete_gpus' to parallelise GPU tasks for better performance?"
@@ -58,11 +62,23 @@ process dorado {
     set +e
     source /opt/nvidia/entrypoint.d/*-gpu-driver-check.sh # runtime driver check msg
     set -e
+    # CW-2569: convert the pod5s contextually
+    if [[ "${params.duplex}" == "true" && "${params.dorado_ext}" == "fast5" ]]; then
+        pod5 convert fast5 ./*.fast5 --output ${signal_path} --threads ${task.cpus} --one-to-one ./
+    fi
+
+    # Run dorado on the new pod5s
     dorado ${caller} \
-        ${model_arg} . \
+        ${model_arg} \
+        ${signal_path} \
         ${remora_args} \
         ${basecaller_args} \
         --device ${params.cuda_device} | samtools view --no-PG -b -o ${chunk_idx}.ubam -
+
+    # CW-2569: delete the pod5s, if emit not required.
+    if [[ "${params.duplex}" == "true" && "${params.dorado_ext}" == "fast5" ]]; then
+        ${delete_pod5s}
+    fi
     """
 }
 
@@ -297,7 +313,7 @@ workflow wf_dorado {
 
         // Compute summary
         if (params.dorado_ext == 'pod5' && params.duplex){
-            dorado_summary(called_bams) | collect | combine_dorado_summaries    
+            dorado_summary(called_bams.ubams) | collect | combine_dorado_summaries    
             summary = combine_dorado_summaries.out.summary
         } else {
             summary = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
@@ -334,4 +350,5 @@ workflow wf_dorado {
         fail = fail
         output_exts = output_exts
         summary = summary
+        converted_pod5s = called_bams.converted_pod5s
 }

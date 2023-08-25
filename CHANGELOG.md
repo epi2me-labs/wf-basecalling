@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
+### [Added]
+- `--duplex` basecalling converts FAST5 to POD5 automatically
+    - Converted POD5 files are deleted by default, use `--output_pod5` to output converted POD5 files to the workflow output directory.
+
 ### Changed
 - Updated Dorado to v0.3.4 (see https://github.com/nanoporetech/dorado/releases/tag/v0.3.4)
 

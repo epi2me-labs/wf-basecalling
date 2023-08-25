@@ -165,6 +165,12 @@
             "description": "Basecaller performance and load settings.",
             "help_text": "These basecalling options do not typically need to be changed.",
             "properties": {
+                "output_pod5": {
+                    "type": "boolean",
+                    "title": "Output converted FAST5",
+                    "description": "Save the converted POD5 when running in duplex with FAST5 inputs.",
+                    "help_text": "Dorado duplex only supports POD5 input. The workflow will automatically convert FAST5 input to POD5 when duplex calling. By default, converted POD5 are deleted to save disk space. Enabling this option will make the workflow output converted POD5 files to a subfolder within the output directory."
+                },
                 "qscore_filter": {
                     "type": "number",
                     "default": 10,
@@ -206,6 +212,12 @@
                     "type": "string",
                     "description": "Additional command line arguments to pass to the basecaller process."
                 }
+            },
+            "dependencies": {
+                "output_pod5": [
+                    "duplex",
+                    "dorado_ext"
+                ]
             }
         },
         "multiprocessing_options": {
