@@ -54,12 +54,14 @@
                 "fastq_only": {
                     "title": "Output FASTQ not CRAM",
                     "type": "boolean",
+                    "default": false,
                     "description": "Output unaligned FASTQ instead of unaligned CRAM",
                     "help_text": "FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM even if fastq_only is set."
                 },
                 "output_bam": {
                     "title": "Output BAM not CRAM",
                     "type": "boolean",
+                    "default": false,
                     "description": "Output unaligned BAM instead of unaligned CRAM",
                     "help_text": "Some downstream applications do not yet support CRAM and will require a BAM file. Enabling this option will output BAM instead of CRAM. You should only use this option if you know that it is needed. Output files will be larger than the corresponding CRAM files that would have been written if this option was not enabled."
                 }
@@ -129,7 +131,7 @@
                     "type": "string",
                     "description": "File extension for Dorado inputs.",
                     "help_text": "Set this to fast5 if you have not converted your fast5 to pod5. It is recommended to [convert existing fast5 files to pod5 for use with Dorado](https://github.com/nanoporetech/pod5-file-format/blob/master/python/README.md#pod5-convert-from-fast5).",
-                    "default": "fast5",
+                    "default": "pod5",
                     "enum": [
                         "fast5",
                         "pod5"
@@ -168,6 +170,7 @@
                 "output_pod5": {
                     "type": "boolean",
                     "title": "Output converted FAST5",
+                    "default": false,
                     "description": "Save the converted POD5 when running in duplex with FAST5 inputs.",
                     "help_text": "Dorado duplex only supports POD5 input. The workflow will automatically convert FAST5 input to POD5 when duplex calling. By default, converted POD5 are deleted to save disk space. Enabling this option will make the workflow output converted POD5 files to a subfolder within the output directory."
                 },
@@ -263,6 +266,7 @@
                 "watch_path": {
                     "title": "Basecall while sequencing ('watch path')",
                     "type": "boolean",
+                    "default": false,
                     "description": "Enable to continuously watch the input directory for new input files. Reads will be analysed as they appear.",
                     "help_text": "This option enables the use of Nextflow's directory watching feature to constantly monitor input directories for new files. As soon as files are written by an external process Nextflow will begin analysing these files. The workflow will accumulate data over time to produce an updating report. Real time analysis of duplex data may lead to lower duplex rates than what would have been obtained by running basecalling after sequencing."
                 },
@@ -284,12 +288,14 @@
                     "type": "boolean",
                     "description": "Display help text.",
                     "fa_icon": "fas fa-question-circle",
+                    "default": false,
                     "hidden": true
                 },
                 "version": {
                     "type": "boolean",
                     "description": "Display version and exit.",
                     "fa_icon": "fas fa-question-circle",
+                    "default": false,
                     "hidden": true
                 },
                 "disable_ping": {
