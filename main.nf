@@ -262,9 +262,7 @@ workflow {
 
     Map colors = NfcoreTemplate.logColours(params.monochrome_logs)
 
-    if (params.disable_ping == false) {
-        Pinguscript.ping_post(workflow, "start", "none", params.out_dir, params)
-    }
+    Pinguscript.ping_start(nextflow, workflow, params)
 
     // Basecall
     // Ensure basecaller config is set
@@ -370,12 +368,9 @@ workflow {
 
 }
 
-if (params.disable_ping == false) {
-    workflow.onComplete {
-        Pinguscript.ping_post(workflow, "end", "none", params.out_dir, params)
-    }
-
-    workflow.onError {
-        Pinguscript.ping_post(workflow, "error", "$workflow.errorMessage", params.out_dir, params)
-    }
+workflow.onComplete {
+    Pinguscript.ping_complete(nextflow, workflow, params)
+}
+workflow.onError {
+    Pinguscript.ping_error(nextflow, workflow, params)
 }
