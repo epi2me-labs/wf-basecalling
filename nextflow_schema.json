@@ -1,358 +1,188 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/epi2me-labs/wf-basecalling/master/nextflow_schema.json",
-    "title": "epi2me-labs/wf-basecalling",
-    "description": "Helper workflow for basecalling ONT reads.",
-    "demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demo.tar.gz",
-    "aws_demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demo/aws.nextflow.config",
-    "url": "https://github.com/epi2me-labs/wf-basecalling",
-    "type": "object",
-    "definitions": {
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://raw.githubusercontent.com/epi2me-labs/wf-basecalling/master/nextflow_schema.json",
+  "title": "epi2me-labs/wf-basecalling pipeline parameters",
+  "description": "Helper workflow for basecalling ONT reads.",
+  "type": "object",
+  "definitions": {
+    "input_output_options": {
+      "title": "Input/output options",
+      "type": "object",
+      "fa_icon": "fas fa-terminal",
+      "description": "Define where the pipeline should find input data and save output data.",
+      "required": ["input"],
+      "properties": {
         "input": {
-            "title": "Input Options",
-            "type": "object",
-            "fa_icon": "fas fa-arrow-right",
-            "description": "Parameters for finding and handling input data for analysis.",
-            "properties": {
-                "input": {
-                    "title": "Input directory",
-                    "type": "string",
-                    "format": "directory-path",
-                    "description": "Directory containing FAST5 (or POD5) signal for basecalling.",
-                    "help_text": "This directory will be searched recursively. All FAST5 or POD5 files (depending on which extension you select in the Basecalling Options) in this directory or any subdirectory (no matter how deep) will be basecalled."
-                },
-                "ref": {
-                    "title": "Reference FASTA file",
-                    "type": "string",
-                    "format": "file-path",
-                    "description": "Optional reference FASTA file to align basecalled reads to.",
-                    "help_text": "Without a reference, basecalls are output to unaligned CRAM. When using a reference, take care to retain this FASTA file as the output CRAM file cannot be read without the reference it was aligned to."
-                }
-            },
-            "required": [
-                "input"
-            ]
-        },
-        "output": {
-            "title": "Output Options",
-            "type": "object",
-            "fa_icon": "fas fa-arrow-left",
-            "description": "Parameters for saving and naming workflow outputs.",
-            "properties": {
-                "out_dir": {
-                    "title": "Output directory",
-                    "type": "string",
-                    "default": "output",
-                    "format": "directory-path",
-                    "description": "Directory for output of all files."
-                },
-                "sample_name": {
-                    "type": "string",
-                    "default": "SAMPLE",
-                    "description": "Sample name to prefix file names of workflow outputs."
-                },
-                "fastq_only": {
-                    "title": "Output FASTQ not CRAM",
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Output unaligned FASTQ instead of unaligned CRAM",
-                    "help_text": "FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM even if fastq_only is set."
-                },
-                "output_bam": {
-                    "title": "Output BAM not CRAM",
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Output unaligned BAM instead of unaligned CRAM",
-                    "help_text": "Some downstream applications do not yet support CRAM and will require a BAM file. Enabling this option will output BAM instead of CRAM. You should only use this option if you know that it is needed. Output files will be larger than the corresponding CRAM files that would have been written if this option was not enabled."
-                }
-            }
-        },
-        "basecalling_options": {
-            "title": "Basecalling options",
-            "type": "object",
-            "fa_icon": "fas fa-gear",
-            "description": "Basecalling model selection.",
-            "help_text": "This section contains options that should be checked before basecalling.",
-            "properties": {
-                "basecaller_cfg": {
-                    "title": "Basecaller configuration",
-                    "type": "string",
-                    "description": "Name of the model to use for converting signal.",
-                    "help_text": "Required for basecalling. The model list only shows models that are compatible with this workflow.",
-                    "enum": [
-                        "dna_r10.4.1_e8.2_260bps_fast@v4.1.0",
-                        "dna_r10.4.1_e8.2_260bps_hac@v4.1.0",
-                        "dna_r10.4.1_e8.2_260bps_sup@v4.1.0",
-                        "dna_r10.4.1_e8.2_400bps_fast@v4.1.0",
-                        "dna_r10.4.1_e8.2_400bps_fast@v4.2.0",
-                        "dna_r10.4.1_e8.2_400bps_hac@v4.1.0",
-                        "dna_r10.4.1_e8.2_400bps_hac@v4.2.0",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.1.0",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.2.0",
-                        "dna_r9.4.1_e8_fast@v3.4",
-                        "dna_r9.4.1_e8_hac@v3.3",
-                        "dna_r9.4.1_e8_sup@v3.3",
-                        "rna002_70bps_fast@v3",
-                        "rna002_70bps_hac@v3",
-                        "rna004_130bps_fast@v3",
-                        "rna004_130bps_hac@v3",
-                        "rna004_130bps_sup@v3"
-                    ]
-                },
-                "duplex": {
-                    "title": "Duplex calling",
-                    "type": "boolean",
-                    "description": "Run the basecaller in duplex mode.",
-                    "default": false,
-                    "help_text": "By default, the workflow conducts simplex basecalling. If you used a chemistry and flowcell combination that supported duplex reads, you should switch this option on. Currently, duplex basecalling is not compatible with modified basecalling. Additionally, duplex basecalling within this workflow is reliant on internal optimisations to organise input files for better duplex rates, which is not possible when using streaming basecalling; therefore duplex combined with the watch_path option could lead to lower duplex rates."
-                },
-                "remora_cfg": {
-                    "title": "Modified basecalling model configuration",
-                    "type": "string",
-                    "description": "Name of the model to use for calling modified bases.",
-                    "help_text": "Required for calling modified bases while basecalling. The model list only shows models that are compatible with this workflow.",
-                    "enum": [
-                        "dna_r10.4.1_e8.2_400bps_fast@v4.1.0_5mCG_5hmCG@v2",
-                        "dna_r10.4.1_e8.2_400bps_fast@v4.2.0_5mCG_5hmCG@v2",
-                        "dna_r10.4.1_e8.2_400bps_hac@v4.1.0_5mCG_5hmCG@v2",
-                        "dna_r10.4.1_e8.2_400bps_hac@v4.2.0_5mCG_5hmCG@v2",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.1.0_5mCG_5hmCG@v2",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.2.0_5mC@v2",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.2.0_5mCG_5hmCG@v2",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.2.0_6mA@v2",
-                        "dna_r9.4.1_e8_fast@v3.4_5mCG@v0.1",
-                        "dna_r9.4.1_e8_fast@v3.4_5mCG_5hmCG@v0",
-                        "dna_r9.4.1_e8_hac@v3.3_5mCG@v0.1",
-                        "dna_r9.4.1_e8_hac@v3.3_5mCG_5hmCG@v0",
-                        "dna_r9.4.1_e8_sup@v3.3_5mCG@v0.1",
-                        "dna_r9.4.1_e8_sup@v3.3_5mCG_5hmCG@v0"
-                    ]
-                },
-                "dorado_ext": {
-                    "title": "Input file format",
-                    "type": "string",
-                    "description": "File extension for Dorado inputs.",
-                    "help_text": "Set this to fast5 if you have not converted your fast5 to pod5. It is recommended to [convert existing fast5 files to pod5 for use with Dorado](https://github.com/nanoporetech/pod5-file-format/blob/master/python/README.md#pod5-convert-from-fast5).",
-                    "default": "pod5",
-                    "enum": [
-                        "fast5",
-                        "pod5"
-                    ]
-                }
-            },
-            "allOf": [
-                {
-                    "required": [
-                        "dorado_ext"
-                    ]
-                },
-                {
-                    "oneOf": [
-                        {
-                            "required": [
-                                "basecaller_cfg"
-                            ]
-                        },
-                        {
-                            "required": [
-                                "basecaller_model_path"
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
-        "advanced_basecalling_options": {
-            "title": "Advanced basecalling options",
-            "type": "object",
-            "fa_icon": "fas fa-gears",
-            "description": "Basecaller performance and load settings.",
-            "help_text": "These basecalling options do not typically need to be changed.",
-            "properties": {
-                "output_pod5": {
-                    "type": "boolean",
-                    "title": "Output converted FAST5",
-                    "default": false,
-                    "description": "Save the converted POD5 when running in duplex with FAST5 inputs.",
-                    "help_text": "Dorado duplex only supports POD5 input. The workflow will automatically convert FAST5 input to POD5 when duplex calling. By default, converted POD5 are deleted to save disk space. Enabling this option will make the workflow output converted POD5 files to a subfolder within the output directory."
-                },
-                "qscore_filter": {
-                    "type": "number",
-                    "default": 10,
-                    "description": "Mean qscore by which to filter reads. Inclusive such that reads with score >= qscore_filter are kept.",
-                    "help_text": "The mean qscore of reads is calculated by dorado and rounded to an integer by dorado and stored as a tag in dorado's SAM output. The pipeline separates reads into pass and fail categories based on this SAM tag."
-                },
-                "basecaller_chunk_size": {
-                    "type": "number",
-                    "default": 25,
-                    "description": "Number of input files to basecall in each basecalling process.",
-                    "minimum": 1,
-                    "hidden": true
-                },
-                "cuda_device": {
-                    "type": "string",
-                    "default": "cuda:all",
-                    "description": "GPU device to use for basecalling [cuda:all]",
-                    "help_text": "For local execution this can be used to pin GPU tasks to one (or more) specific GPU devices. Use cuda:all to use all available GPU devices, or cuda:<idx>[,idx,...] where idx is an index number of a GPU device to use."
-                },
-                "basecaller_model_path": {
-                    "type": "string",
-                    "format": "directory-path",
-                    "description": "Override the named basecalling model with a custom basecalling model",
-                    "help_text": "For typical use, users should set --basecaller_cfg which will use a named model from inside the container. Experimental or custom basecallers will not be available in the container and can be loaded from the host with --basecaller_model_path."
-                },
-                "remora_model_path": {
-                    "type": "string",
-                    "format": "directory-path",
-                    "description": "Override the named remora model with a custom remora model",
-                    "help_text": "For typical use, users should set --remora_cfg which will use a named model from inside the container. Experimental or custom models will not be available in the container and can be loaded from the host with --remora_model_path."
-                },
-                "basecaller_basemod_threads": {
-                    "type": "number",
-                    "default": 2,
-                    "description": "Number of threads to use for base modification calling.",
-                    "help_text": "You must set this to > 0 when using a modbase aware model. Modbase calling does not require much additional CPU and should be set carefully when using GPU servers with a small number of CPUs per GPU."
-                },
-                "basecaller_args": {
-                    "type": "string",
-                    "description": "Additional command line arguments to pass to the basecaller process."
-                }
-            },
-            "dependencies": {
-                "output_pod5": [
-                    "duplex",
-                    "dorado_ext"
-                ]
-            }
-        },
-        "multiprocessing_options": {
-            "title": "Multiprocessing Options",
-            "type": "object",
-            "fa_icon": "far fa-gauge-high",
-            "description": "Advanced options for configuring the performance of specific workflow processes.",
-            "help_text": "These options do not need to be changed for typical use, but allow fine tuning of workflows for users who want more control over the workflow.",
-            "properties": {
-                "ubam_map_threads": {
-                    "type": "integer",
-                    "default": 8,
-                    "description": "Set max number of threads to use for aligning reads from uBAM (limited by config executor cpus)"
-                },
-                "ubam_sort_threads": {
-                    "type": "integer",
-                    "default": 3,
-                    "description": "Set max number of threads to use for sorting and indexing aligned reads from uBAM (limited by config executor cpus)"
-                },
-                "ubam_bam2fq_threads": {
-                    "type": "integer",
-                    "default": 1,
-                    "description": "Set max number of threads to use for uncompressing uBAM and generating FASTQ for alignment (limited by config executor cpus)"
-                },
-                "merge_threads": {
-                    "type": "integer",
-                    "default": 4,
-                    "description": "Set max number of threads to use for merging BAM files (limited by config executor cpus)"
-                },
-                "stats_threads": {
-                    "type": "integer",
-                    "default": 4,
-                    "description": "Set max number of threads to use for getting stats from output files. (limited by config executor cpus)"
-                }
-            }
-        },
-        "real_time_analysis_options": {
-            "title": "Real Time Analysis Options",
-            "type": "object",
-            "description": "Options relating to the non default real-time streaming workflow.",
-            "default": "",
-            "properties": {
-                "watch_path": {
-                    "title": "Basecall while sequencing ('watch path')",
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable to continuously watch the input directory for new input files. Reads will be analysed as they appear.",
-                    "help_text": "This option enables the use of Nextflow's directory watching feature to constantly monitor input directories for new files. As soon as files are written by an external process Nextflow will begin analysing these files. The workflow will accumulate data over time to produce an updating report. Real time analysis of duplex data may lead to lower duplex rates than what would have been obtained by running basecalling after sequencing."
-                },
-                "read_limit": {
-                    "type": "integer",
-                    "description": "Stop processing data when a particular number of reads have been analysed.",
-                    "help_text": "By default the workflow will run indefinitely when using the real time watch path option. This will set the upper bound on the number of reads that will be analysed before the workflow is automatically stopped and no more data is analysed."
-                }
-            }
-        },
-        "generic_options": {
-            "title": "Generic options",
-            "type": "object",
-            "fa_icon": "far fa-question-circle",
-            "description": "Less common options for the pipeline, typically set in a config file.",
-            "help_text": "These options are common to all nf-core pipelines and allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
-            "properties": {
-                "help": {
-                    "type": "boolean",
-                    "description": "Display help text.",
-                    "fa_icon": "fas fa-question-circle",
-                    "default": false,
-                    "hidden": true
-                },
-                "version": {
-                    "type": "boolean",
-                    "description": "Display version and exit.",
-                    "fa_icon": "fas fa-question-circle",
-                    "default": false,
-                    "hidden": true
-                },
-                "disable_ping": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Disable workflow ping."
-                }
-            }
+          "type": "string",
+          "format": "file-path",
+          "exists": true,
+          "mimetype": "text/csv",
+          "pattern": "^\\S+\\.csv$",
+          "description": "Path to comma-separated file containing information about the samples in the experiment.",
+          "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row.",
+          "fa_icon": "fas fa-file-csv"
         }
+      }
     },
-    "allOf": [
-        {
-            "$ref": "#/definitions/input"
+    "generic_options": {
+      "title": "Generic options",
+      "type": "object",
+      "fa_icon": "fas fa-file-import",
+      "description": "Less common options for the pipeline, typically set in a config file.",
+      "help_text": "These options are common to all nf-core pipelines and allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
+      "properties": {
+        "help": {
+          "type": "boolean",
+          "description": "Display help text.",
+          "fa_icon": "fas fa-question-circle",
+          "hidden": true
         },
-        {
-            "$ref": "#/definitions/output"
-        },
-        {
-            "$ref": "#/definitions/basecalling_options"
-        },
-        {
-            "$ref": "#/definitions/real_time_analysis_options"
-        },
-        {
-            "$ref": "#/definitions/advanced_basecalling_options"
-        },
-        {
-            "$ref": "#/definitions/multiprocessing_options"
-        },
-        {
-            "$ref": "#/definitions/generic_options"
-        }
-    ],
-    "properties": {
-        "aws_image_prefix": {
-            "type": "string",
-            "hidden": true
-        },
-        "aws_queue": {
-            "type": "string",
-            "hidden": true
+        "version": {
+          "type": "boolean",
+          "description": "Display version and exit.",
+          "fa_icon": "fas fa-question-circle",
+          "hidden": true
         },
         "monochrome_logs": {
-            "type": "boolean"
+          "type": "boolean",
+          "description": "Do not use coloured log outputs.",
+          "fa_icon": "fas fa-palette",
+          "hidden": true
         },
         "validate_params": {
-            "type": "boolean",
-            "default": true
-        },
-        "show_hidden_params": {
-            "type": "boolean"
+          "type": "boolean",
+          "description": "Boolean whether to validate parameters against the schema at runtime",
+          "default": true,
+          "fa_icon": "fas fa-check-square",
+          "hidden": true
         }
-    },
-    "docs": {
-        "intro": "## Introduction\n\nThis workflow introduces users to [`Dorado`](https://github.com/nanoporetech/dorado),\nwhich is now our standard basecaller. `dorado` is still under active development and\nwill be kept updated as new releases are made. We strongly encourage users to check\nthe CHANGELOG for breaking changes.\n",
-        "links": "## Useful links\n\n* [nextflow](https://www.nextflow.io/)\n* [docker](https://www.docker.com/products/docker-desktop)\n* [singularity](https://sylabs.io/singularity/)\n* [dorado](https://github.com/nanoporetech/dorado/)\n"
+      }
     }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/input_output_options"
+    },
+    {
+      "$ref": "#/definitions/generic_options"
+    }
+  ],
+  "properties": {
+    "aws_image_prefix": {
+      "type": "string",
+      "default": null
+    },
+    "aws_queue": {
+      "type": "string",
+      "default": null
+    },
+    "disable_ping": {
+      "type": "string",
+      "default": "false"
+    },
+    "show_hidden_params": {
+      "type": "string",
+      "default": "false"
+    },
+    "schema_ignore_params": {
+      "type": "string",
+      "default": "show_hidden_params,validate_params,monochrome_logs,aws_queue,aws_image_prefix,wf"
+    },
+    "ref": {
+      "type": "string",
+      "default": null
+    },
+    "out_dir": {
+      "type": "string",
+      "default": "output"
+    },
+    "sample_name": {
+      "type": "string",
+      "default": "SAMPLE"
+    },
+    "basecaller_chunk_size": {
+      "type": "integer",
+      "default": 25
+    },
+    "basecaller_cfg": {
+      "type": "string",
+      "default": null
+    },
+    "basecaller_args": {
+      "type": "string",
+      "default": null
+    },
+    "basecaller_basemod_threads": {
+      "type": "integer",
+      "default": 2
+    },
+    "duplex": {
+      "type": "string",
+      "default": "false"
+    },
+    "cuda_device": {
+      "type": "string",
+      "default": "cuda:all"
+    },
+    "ubam_map_threads": {
+      "type": "integer",
+      "default": 8
+    },
+    "ubam_sort_threads": {
+      "type": "integer",
+      "default": 3
+    },
+    "ubam_bam2fq_threads": {
+      "type": "integer",
+      "default": 1
+    },
+    "merge_threads": {
+      "type": "integer",
+      "default": 4
+    },
+    "stats_threads": {
+      "type": "integer",
+      "default": 4
+    },
+    "basecaller_model_path": {
+      "type": "string",
+      "default": null
+    },
+    "remora_model_path": {
+      "type": "string",
+      "default": null
+    },
+    "qscore_filter": {
+      "type": "integer",
+      "default": 10
+    },
+    "remora_cfg": {
+      "type": "string",
+      "default": null
+    },
+    "dorado_ext": {
+      "type": "string",
+      "default": "pod5"
+    },
+    "fastq_only": {
+      "type": "string",
+      "default": "false"
+    },
+    "output_bam": {
+      "type": "string",
+      "default": "false"
+    },
+    "output_pod5": {
+      "type": "string",
+      "default": "false"
+    },
+    "watch_path": {
+      "type": "string",
+      "default": "false"
+    },
+    "read_limit": {
+      "type": "string",
+      "default": null
+    }
+  }
 }
