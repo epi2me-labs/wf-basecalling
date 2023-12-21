@@ -266,6 +266,26 @@
           "default": "show_hidden_params,validate_params,monochrome_logs,aws_queue,aws_image_prefix,wf"
         }
       }
+    },
+    "hpc_settings": {
+      "title": "HPC Settings",
+      "type": "object",
+      "description": "",
+      "default": "",
+      "properties": {
+        "max_memory": {
+          "type": "string",
+          "default": "256.GB"
+        },
+        "max_cpus": {
+          "type": "integer",
+          "default": 32
+        },
+        "max_time": {
+          "type": "string",
+          "default": "48.h"
+        }
+      }
     }
   },
   "allOf": [
@@ -292,6 +312,9 @@
     },
     {
       "$ref": "#/definitions/other_parameter"
+    },
+    {
+      "$ref": "#/definitions/hpc_settings"
     }
   ]
 }
