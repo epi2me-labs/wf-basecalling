@@ -16,8 +16,7 @@
           "type": "string",
           "format": "file-path",
           "exists": true,
-          "mimetype": "text/csv",
-          "pattern": "^\\S+\\.csv$",
+          "mimetype": "text",
           "description": "Directory containing FAST5 (or POD5) signal for basecalling.",
           "help_text": "Directory containing FAST5 (or POD5) signal for basecalling.",
           "fa_icon": "fas fa-file-csv"
