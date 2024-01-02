@@ -2,7 +2,8 @@
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "https://raw.githubusercontent.com/epi2me-labs/wf-basecalling/master/nextflow_schema.json",
     "title": "epi2me-labs/wf-basecalling",
-    "description": "Helper workflow for basecalling ONT reads.",
+    "workflow_title": "Basecalling workflow",
+    "description": "Helper workflow for signal processing and primary data analysis of Oxford Nanopore Technologies' reads.",
     "demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demo.tar.gz",
     "aws_demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demo/aws.nextflow.config",
     "url": "https://github.com/epi2me-labs/wf-basecalling",
@@ -55,14 +56,14 @@
                     "title": "Output FASTQ not CRAM",
                     "type": "boolean",
                     "default": false,
-                    "description": "Output unaligned FASTQ instead of unaligned CRAM",
+                    "description": "Output unaligned FASTQ instead of unaligned CRAM.",
                     "help_text": "FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM even if fastq_only is set."
                 },
                 "output_bam": {
                     "title": "Output BAM not CRAM",
                     "type": "boolean",
                     "default": false,
-                    "description": "Output unaligned BAM instead of unaligned CRAM",
+                    "description": "Output unaligned BAM instead of unaligned CRAM.",
                     "help_text": "Some downstream applications do not yet support CRAM and will require a BAM file. Enabling this option will output BAM instead of CRAM. You should only use this option if you know that it is needed. Output files will be larger than the corresponding CRAM files that would have been written if this option was not enabled."
                 }
             }
@@ -192,19 +193,19 @@
                 "cuda_device": {
                     "type": "string",
                     "default": "cuda:all",
-                    "description": "GPU device to use for basecalling [cuda:all]",
+                    "description": "GPU device to use for basecalling [cuda:all].",
                     "help_text": "For local execution this can be used to pin GPU tasks to one (or more) specific GPU devices. Use cuda:all to use all available GPU devices, or cuda:<idx>[,idx,...] where idx is an index number of a GPU device to use."
                 },
                 "basecaller_model_path": {
                     "type": "string",
                     "format": "directory-path",
-                    "description": "Override the named basecalling model with a custom basecalling model",
+                    "description": "Override the named basecalling model with a custom basecalling model.",
                     "help_text": "For typical use, users should set --basecaller_cfg which will use a named model from inside the container. Experimental or custom basecallers will not be available in the container and can be loaded from the host with --basecaller_model_path."
                 },
                 "remora_model_path": {
                     "type": "string",
                     "format": "directory-path",
-                    "description": "Override the named remora model with a custom remora model",
+                    "description": "Override the named remora model with a custom remora model.",
                     "help_text": "For typical use, users should set --remora_cfg which will use a named model from inside the container. Experimental or custom models will not be available in the container and can be loaded from the host with --remora_model_path."
                 },
                 "basecaller_basemod_threads": {
@@ -350,6 +351,18 @@
         "show_hidden_params": {
             "type": "boolean"
         }
+    },
+    "resources": {
+        "recommended": {
+            "cpus": 64,
+            "memory": "256GB"
+        },
+        "minimum": {
+            "cpus": 8,
+            "memory": "64GB"
+        },
+        "run_time": "Variable depending on coverage, genome size, model of choice and GPU model. For instance, basecalling a flowcell with ~11.6M reads and HAC model, using on four compute nodes with two NVidia A100 GPUs each, takes approximately 6h.",
+        "arm_support": false
     },
     "docs": {
         "intro": "## Introduction\n\nThis workflow introduces users to [`Dorado`](https://github.com/nanoporetech/dorado),\nwhich is now our standard basecaller. `dorado` is still under active development and\nwill be kept updated as new releases are made. We strongly encourage users to check\nthe CHANGELOG for breaking changes.\n",

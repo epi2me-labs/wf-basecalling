@@ -1,0 +1,76 @@
+{
+  "files": {
+    "workflow-report": {
+      "filepath": "wf-basecalling-report.html",
+      "title": "workflow report",
+      "description": "Report summarising the work done by the basecalling workflow",
+      "mime-type": "text/html",
+      "optional": false,
+      "type": "per-sample"
+    },
+    "simplex-alignment-pass": {
+      "filepath": "{{ alias }}.pass.simplex.{{ format }}",
+      "title": "Simplex alignment file of passed reads",
+      "description": "BAM or CRAM file of simplex reads for the sample that pass QC filtering.",
+      "mime-type": "application/x-gzip",
+      "optional": false,
+      "type": "per-sample"
+    },    
+    "duplex-alignment-pass": {
+      "filepath": "{{ alias }}.pass.duplex.{{ format }}",
+      "title": "Duplex alignment file of passed reads",
+      "description": "BAM or CRAM file of duplex reads for the sample that pass QC filtering. Created if duplex basecalling is requested.",
+      "mime-type": "application/x-gzip",
+      "optional": true,
+      "type": "per-sample"
+    },    
+    "simplex-alignment-pass-index": {
+      "filepath": "{{ alias }}.pass.simplex.{{ format }}.{{ index_format }}",
+      "title": "Simplex alignment file index of passed reads",
+      "description": "The index of the resulting BAM or CRAM file with the simplex reads that pass QC filtering.",
+      "mime-type": "application/octet-stream",
+      "optional": false,
+      "type": "per-sample"
+    },
+    "duplex-alignment-pass-index": {
+      "filepath": "{{ alias }}.pass.duplex.{{ format }}.{{ index_format }}",
+      "title": "Duplex alignment file index of passed reads",
+      "description": "The index of the resulting BAM or CRAM file with the duplex reads that pass QC filtering. Created if duplex basecalling is requested.",
+      "mime-type": "application/octet-stream",
+      "optional": true,
+      "type": "per-sample"
+    },
+    "simplex-alignment-fail": {
+      "filepath": "{{ alias }}.fail.simplex.{{ format }}",
+      "title": "Simplex alignment file of failed reads",
+      "description": "BAM or CRAM file of simplex reads for the sample that fail QC filtering.",
+      "mime-type": "application/x-gzip",
+      "optional": false,
+      "type": "per-sample"
+    },    
+    "duplex-alignment-fail": {
+      "filepath": "{{ alias }}.fail.duplex.{{ format }}",
+      "title": "Duplex alignment file of failed reads",
+      "description": "BAM or CRAM file of duplex reads for the sample that fail QC filtering. Created if duplex basecalling is requested.",
+      "mime-type": "application/x-gzip",
+      "optional": true,
+      "type": "per-sample"
+    },    
+    "simplex-alignment-fail-index": {
+      "filepath": "{{ alias }}.fail.simplex.{{ format }}.{{ index_format }}",
+      "title": "Simplex alignment file index of failed reads",
+      "description": "The index of the resulting BAM or CRAM file with the simplex reads that fail QC filtering.",
+      "mime-type": "application/octet-stream",
+      "optional": false,
+      "type": "per-sample"
+    },
+    "duplex-alignment-fail-index": {
+      "filepath": "{{ alias }}.fail.duplex.{{ format }}.{{ index_format }}",
+      "title": "Duplex alignment file index of failed reads",
+      "description": "The index of the resulting BAM or CRAM file with the duplex reads that fail QC filtering. Created if duplex basecalling is requested.",
+      "mime-type": "application/octet-stream",
+      "optional": true,
+      "type": "per-sample"
+    }
+  }
+}
