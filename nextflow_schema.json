@@ -202,7 +202,7 @@
                     "type": "string",
                     "default": "cuda:all",
                     "description": "GPU device to use for basecalling [cuda:all].",
-                    "help_text": "For local execution this can be used to pin GPU tasks to one (or more) specific GPU devices. Use cuda:all to use all available GPU devices, or cuda:<idx>[,idx,...] where idx is an index number of a GPU device to use."
+                    "help_text": "For local execution this can be used to pin GPU tasks to one (or more) specific GPU devices. Use cuda:all to use all available GPU devices, or cuda:idx[,idx,...] where idx is an index number(s) of GPU device(s) to use."
                 },
                 "basecaller_model_path": {
                     "type": "string",
