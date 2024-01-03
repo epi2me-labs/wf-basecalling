@@ -13,6 +13,11 @@ conda-run:
     rules:
         - when: never
 
+# Disabled 2024-01 as we've temporarily disabled GPU AWS JQs
+aws-run-demo:
+    rules:
+        - when: never
+
 check-models:
     extends: .preflight
     script:
