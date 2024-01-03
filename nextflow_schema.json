@@ -86,18 +86,20 @@
                         "dna_r10.4.1_e8.2_260bps_sup@v4.1.0",
                         "dna_r10.4.1_e8.2_400bps_fast@v4.1.0",
                         "dna_r10.4.1_e8.2_400bps_fast@v4.2.0",
+                        "dna_r10.4.1_e8.2_400bps_fast@v4.3.0",
                         "dna_r10.4.1_e8.2_400bps_hac@v4.1.0",
-                        "dna_r10.4.1_e8.2_400bps_hac@v4.2.0",
+                        "dna_r10.4.1_e8.2_400bps_hac@v4.3.0",
                         "dna_r10.4.1_e8.2_400bps_sup@v4.1.0",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.2.0",
+                        "dna_r10.4.1_e8.2_400bps_sup@v4.3.0",
                         "dna_r9.4.1_e8_fast@v3.4",
                         "dna_r9.4.1_e8_hac@v3.3",
                         "dna_r9.4.1_e8_sup@v3.3",
+                        "dna_r9.4.1_e8_sup@v3.6",
                         "rna002_70bps_fast@v3",
                         "rna002_70bps_hac@v3",
-                        "rna004_130bps_fast@v3",
-                        "rna004_130bps_hac@v3",
-                        "rna004_130bps_sup@v3"
+                        "rna004_130bps_fast@v3.0.1",
+                        "rna004_130bps_hac@v3.0.1",
+                        "rna004_130bps_sup@v3.0.1"
                     ]
                 },
                 "duplex": {
@@ -113,20 +115,26 @@
                     "description": "Name of the model to use for calling modified bases.",
                     "help_text": "Required for calling modified bases while basecalling. The model list only shows models that are compatible with this workflow.",
                     "enum": [
+                        "dna_r10.4.1_e8.2_260bps_fast@v4.1.0_5mCG_5hmCG@v2",
+                        "dna_r10.4.1_e8.2_260bps_hac@v4.1.0_5mCG_5hmCG@v2",
+                        "dna_r10.4.1_e8.2_260bps_sup@v4.1.0_5mCG_5hmCG@v2",
                         "dna_r10.4.1_e8.2_400bps_fast@v4.1.0_5mCG_5hmCG@v2",
                         "dna_r10.4.1_e8.2_400bps_fast@v4.2.0_5mCG_5hmCG@v2",
                         "dna_r10.4.1_e8.2_400bps_hac@v4.1.0_5mCG_5hmCG@v2",
-                        "dna_r10.4.1_e8.2_400bps_hac@v4.2.0_5mCG_5hmCG@v2",
+                        "dna_r10.4.1_e8.2_400bps_hac@v4.3.0_5mCG_5hmCG@v1",
+                        "dna_r10.4.1_e8.2_400bps_hac@v4.3.0_5mC_5hmC@v1",
+                        "dna_r10.4.1_e8.2_400bps_hac@v4.3.0_6mA@v2",
                         "dna_r10.4.1_e8.2_400bps_sup@v4.1.0_5mCG_5hmCG@v2",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.2.0_5mC@v2",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.2.0_5mCG_5hmCG@v2",
-                        "dna_r10.4.1_e8.2_400bps_sup@v4.2.0_6mA@v2",
+                        "dna_r10.4.1_e8.2_400bps_sup@v4.3.0_5mCG_5hmCG@v1",
+                        "dna_r10.4.1_e8.2_400bps_sup@v4.3.0_5mC_5hmC@v1",
+                        "dna_r10.4.1_e8.2_400bps_sup@v4.3.0_6mA@v2",
                         "dna_r9.4.1_e8_fast@v3.4_5mCG@v0.1",
                         "dna_r9.4.1_e8_fast@v3.4_5mCG_5hmCG@v0",
                         "dna_r9.4.1_e8_hac@v3.3_5mCG@v0.1",
                         "dna_r9.4.1_e8_hac@v3.3_5mCG_5hmCG@v0",
                         "dna_r9.4.1_e8_sup@v3.3_5mCG@v0.1",
-                        "dna_r9.4.1_e8_sup@v3.3_5mCG_5hmCG@v0"
+                        "dna_r9.4.1_e8_sup@v3.3_5mCG_5hmCG@v0",
+                        "rna004_130bps_sup@v3.0.1_m6A_DRACH@v1"
                     ]
                 },
                 "dorado_ext": {
@@ -361,7 +369,7 @@
             "cpus": 8,
             "memory": "64GB"
         },
-        "run_time": "Variable depending on coverage, genome size, model of choice and GPU model. For instance, basecalling a flowcell with ~11.6M reads and HAC model, using on four compute nodes with two NVidia A100 GPUs each, takes approximately 6h.",
+        "run_time": "Variable depending on coverage, genome size, model of choice and GPU model.",
         "arm_support": false
     },
     "docs": {

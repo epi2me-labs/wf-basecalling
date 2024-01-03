@@ -32,7 +32,7 @@ Minimum requirements:
 + CPUs = 8
 + Memory = 64GB
 
-Approximate run time: Variable depending on coverage, genome size, model of choice and GPU model. For instance, basecalling a flowcell with ~11.6M reads and HAC model, using on four compute nodes with two NVidia A100 GPUs each, takes approximately 6h.
+Approximate run time: Variable depending on coverage, genome size, model of choice and GPU model.
 
 ARM processor support: False
 
