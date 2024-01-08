@@ -4,6 +4,7 @@
 process merge_calls {
     label "wf_basecalling"
     cpus params.merge_threads
+    memory 16.GB
     input:
         path(ref)
         path(crams, stageAs: "filtered_*.cram")
@@ -21,6 +22,7 @@ process merge_calls {
 process merge_calls_to_fastq {
     label "wf_basecalling"
     cpus { params.merge_threads + params.ubam_bam2fq_threads }
+    memory 16.GB
     input:
         path(crams)
         val(filetag)

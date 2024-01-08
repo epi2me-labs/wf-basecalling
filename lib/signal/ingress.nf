@@ -37,6 +37,7 @@ process dorado {
     label "gpu"
     accelerator 1 // further configuration should be overloaded using withLabel:gpu
     cpus 8
+    memory 48.GB // 48 should be plenty, if needed can push for more based on instance type: p3=61 GB RAM per GPU, p4=144 GB RAM per GPU
     input:
         tuple val(chunk_idx), path('*')
         tuple val(basecaller_cfg), path("dorado_model"), val(basecaller_model_override)
@@ -59,9 +60,6 @@ process dorado {
     }
     // If no pairs list, run vanilla duplex
     """
-    set +e
-    source /opt/nvidia/entrypoint.d/*-gpu-driver-check.sh # runtime driver check msg
-    set -e
     # CW-2569: convert the pod5s contextually
     if [[ "${params.duplex}" == "true" && "${params.dorado_ext}" == "fast5" ]]; then
         pod5 convert fast5 ./*.fast5 --output ${signal_path} --threads ${task.cpus} --one-to-one ./
@@ -86,6 +84,7 @@ process dorado {
 process align_and_qsFilter {
     label "wf_basecalling"
     cpus {params.ubam_map_threads + params.ubam_sort_threads + params.ubam_bam2fq_threads}
+    memory 32.GB
     input:
         path mmi_reference
         path reference
@@ -107,6 +106,8 @@ process align_and_qsFilter {
 
 process qsFilter {
     label "wf_basecalling"
+    cpus 2
+    memory 16.GB
     input:
         path reads
     output:
@@ -122,6 +123,7 @@ process qsFilter {
 process make_mmi {
     label "wf_basecalling"
     cpus 4
+    memory 16.GB
     input:
         path(ref)
     output:

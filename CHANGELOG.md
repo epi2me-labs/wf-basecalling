@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.3]
+### Changed
+- Bumped memory directives for intense tasks to reduce likelihood of job failure
+- Default to parallel GPU usage when using awsbatch profile
+### Removed
+- Runtime driver check in Dorado process, as this is no longer available in the Dorado image
+
 ## [v1.1.2]
 ### Changed
 - Updated dorado version to v0.5.1 (see https://github.com/nanoporetech/dorado/releases/tag/v0.5.1)
