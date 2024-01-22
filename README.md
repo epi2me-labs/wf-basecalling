@@ -89,7 +89,16 @@ Find related protocols in the [Nanopore community](https://community.nanoporetec
 
 
 
-## Inputs
+## Input example
+
+This workflow accepts a folder containing FAST5 or POD5 files as input.
+The folder may contain other folders of FAST5 or POD5 files and all files will be processed by the workflow.
+
+
+
+
+
+## Input parameters
 
 ### Input Options
 
@@ -164,7 +173,7 @@ Find related protocols in the [Nanopore community](https://community.nanoporetec
 
 ## Outputs
 
-Outputs files may be aggregated including information for all samples or provided per sample. Per-sample files will be prefixed with respective aliases and represented below as {{ alias }}.
+Output files may be aggregated including information for all samples or provided per sample. Per-sample files will be prefixed with respective aliases and represented below as {{ alias }}.
 
 | Title | File path | Description | Per sample or aggregated |
 |-------|-----------|-------------|--------------------------|
