@@ -81,6 +81,40 @@ process dorado {
 }
 
 
+process bonito {
+    label "wf_bonito"
+    label "gpu"
+    accelerator 1 // further configuration should be overloaded using withLabel:gpu
+    cpus 8
+    memory 48.GB // 48 should be plenty, if needed can push for more based on instance type: p3=61 GB RAM per GPU, p4=144 GB RAM per GPU
+    input:
+        tuple val(chunk_idx), path('*')
+        tuple val(basecaller_cfg), path("bonito_model"), val(basecaller_model_override)
+    output:
+        path("${chunk_idx}.ubam"), emit: ubams
+        // this is just to conform to same signature are process dorado
+        path("converted/*.pod5"), emit: converted_pod5s, optional: true
+    script:
+    // We don't have a DRD_MODELS_PATH here as above, because we prebundled the models into bonito
+    def model_arg = basecaller_model_override ? "bonito_model" : "${basecaller_cfg}"
+    def basecaller_args = params.basecaller_args ?: ''
+    def signal_path = "./"
+    // we can't set maxForks dynamically, but we can detect it might be wrong!
+    if (task.executor != "local" && task.maxForks == 1) {
+        log.warn "Non-local workflow execution detected but GPU tasks are currently configured to run in serial, perhaps you should be using '-profile discrete_gpus' to parallelise GPU tasks for better performance?"
+    }
+    // * bonito outputs fastq if writing to pipe
+    // * there is a --device option, but it doesn't like 'cuda:all'
+    """
+    bonito basecaller \
+        ${model_arg} \
+        ${signal_path} \
+        ${basecaller_args} \
+    | samtools view --no-PG -b -o ${chunk_idx}.ubam -
+    """
+}
+
+
 process align_and_qsFilter {
     label "wf_basecalling"
     cpus {params.ubam_map_threads + params.ubam_sort_threads + params.ubam_bam2fq_threads}
@@ -95,11 +129,16 @@ process align_and_qsFilter {
         path("${reads.baseName}.pass.cram"), emit: pass
         path("${reads.baseName}.fail.cram"), emit: fail
     script:
+    // bonito doesn't do qs tag -- just convert to cram
+    def filter = params.use_bonito ? "-e '[qs] >= ${params.qscore_filter}'" : ""
     """
     samtools bam2fq -@ ${params.ubam_bam2fq_threads} -T 1 ${reads} \
         | minimap2 -y -t ${params.ubam_map_threads} -ax map-ont ${mmi_reference} - \
         | samtools sort -@ ${params.ubam_sort_threads} \
-        | samtools view -e '[qs] >= ${params.qscore_filter}' --output ${reads.baseName}.pass.cram --unoutput ${reads.baseName}.fail.cram -O CRAM --reference ${reference} -
+        | samtools view ${filter} \
+              --output ${reads.baseName}.pass.cram \
+              --unoutput ${reads.baseName}.fail.cram \
+              -O CRAM --reference ${reference} -
     """
 }
 
@@ -108,14 +147,20 @@ process qsFilter {
     label "wf_basecalling"
     cpus 2
     memory 16.GB
+    log.warn("Reads are not filtered when using bonito.")
     input:
         path reads
     output:
         path("${reads.baseName}.pass.cram"), emit: pass
         path("${reads.baseName}.fail.cram"), emit: fail
     script:
+    // bonito doesn't do qs tag -- just convert to cram
+    def filter = params.use_bonito ? "-e '[qs] >= ${params.qscore_filter}'" : ""
     """
-    samtools view -e '[qs] >= ${params.qscore_filter}' ${reads} --output ${reads.baseName}.pass.cram --unoutput ${reads.baseName}.fail.cram -O CRAM
+    samtools view ${filter} ${reads} \
+        --output ${reads.baseName}.pass.cram \
+        --unoutput ${reads.baseName}.fail.cram \
+        -O CRAM
     """
 }
 
@@ -306,12 +351,18 @@ workflow wf_dorado {
                 .set{ready_pod5_chunks}
         }
 
-
-        called_bams = dorado(
-            ready_pod5_chunks,
-            tuple(margs.basecaller_model_name, basecaller_model, basecaller_model_override),
-            tuple(margs.remora_model_name, remora_model, remora_model_override)
-        )
+        if (params.use_bonito) {
+            called_bams = bonito(
+                ready_pod5_chunks,
+                tuple(margs.basecaller_model_name, basecaller_model, basecaller_model_override), 
+            )
+        } else {
+            called_bams = dorado(
+                ready_pod5_chunks,
+                tuple(margs.basecaller_model_name, basecaller_model, basecaller_model_override),
+                tuple(margs.remora_model_name, remora_model, remora_model_override)
+            )
+        }
 
         // Compute summary
         if (params.dorado_ext == 'pod5' && params.duplex){
