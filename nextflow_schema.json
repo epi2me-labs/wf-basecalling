@@ -225,6 +225,34 @@
                 "basecaller_args": {
                     "type": "string",
                     "description": "Additional command line arguments to pass to the basecaller process."
+                },
+                "experimental": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable experimental and unsupported features.",
+                    "hidden": true,
+                    "help": "Use of this option is required to enable hidden, experimental features. No ordinary user should need to enable this option unless instructed to do so by a member of the EPI2ME team."
+                },
+                "use_bonito": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Use bonito rather than dorado for basecalling. Highly experimental, many options will not work when this is enabled.",
+                    "help_text": "This experimental option is not recommended for normal use and is not supported.",
+                    "hidden": true
+                },
+                "bonito_cfg": {
+                    "title": "Basecaller configuration",
+                    "default": "dna_r10.4.1_e8.2_400bps_trns@v5.0.alpha",
+                    "type": "string",
+                    "description": "Name of the model to use for converting signal.",
+                    "help_text": "Required for basecalling. The model list only shows models that are compatible with this workflow.",
+                    "enum": [
+                        "dna_r10.4.1_e8.2_260bps_5b4_dU_trns@v5.0.alpha",
+                        "dna_r10.4.1_e8.2_260bps_trns@v5.0.alpha",
+                        "dna_r10.4.1_e8.2_400bps_5b4_dU_trns@v5.0.alpha",
+                        "dna_r10.4.1_e8.2_400bps_trns@v5.0.alpha"
+                    ],
+                    "hidden": true
                 }
             },
             "dependencies": {

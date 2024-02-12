@@ -288,11 +288,20 @@ workflow {
             throw new Exception(colors.red + "--remora_cfg modbase aware config requires setting --basecaller_basemod_threads > 0" + colors.reset)
         }
     }
+
+    //
+    if (params.use_bonito) {
+        log.warn("Using bonito for basecalling, bonito is an experimental feature for which no support is entertained.")
+        if (!params.experimental) {
+            error "Use of bonito is locked behind the `--experimental` option."
+        }
+    }
+
     // ring ring it's for you
     basecaller_out = wf_dorado([
         "input_path": params.input,
         "input_ref": params.ref,
-        "basecaller_model_name": params.basecaller_cfg,
+        "basecaller_model_name": params.use_bonito ? params.bonito_cfg : params.basecaller_cfg,
         "remora_model_name": params.remora_cfg,
         "basecaller_model_path": params.basecaller_model_path,
         "remora_model_path": params.remora_model_path,
