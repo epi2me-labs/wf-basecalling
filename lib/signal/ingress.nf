@@ -35,9 +35,10 @@ process dorado {
     label "wf_dorado"
     label "wf_basecalling"
     label "gpu"
+    // Targetting g5.2xlarge (8 CPU, 32 GB, 1 A10G) and g5.12xlarge (64 CPU, 192 GB, 4 A10G)
     accelerator 1 // further configuration should be overloaded using withLabel:gpu
     cpus 8
-    memory 48.GB // 48 should be plenty, if needed can push for more based on instance type: p3=61 GB RAM per GPU, p4=144 GB RAM per GPU
+    memory 32.GB
     input:
         tuple val(chunk_idx), path('*')
         tuple val(basecaller_cfg), path("dorado_model"), val(basecaller_model_override)
@@ -84,9 +85,10 @@ process dorado {
 process bonito {
     label "wf_bonito"
     label "gpu"
+    // Targetting g5.2xlarge (8 CPU, 32 GB, 1 A10G) and g5.12xlarge (64 CPU, 192 GB, 4 A10G)
     accelerator 1 // further configuration should be overloaded using withLabel:gpu
     cpus 8
-    memory 48.GB // 48 should be plenty, if needed can push for more based on instance type: p3=61 GB RAM per GPU, p4=144 GB RAM per GPU
+    memory 32.GB
     input:
         tuple val(chunk_idx), path('*')
         tuple val(basecaller_cfg), path("bonito_model"), val(basecaller_model_override)
