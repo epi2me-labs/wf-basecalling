@@ -132,7 +132,7 @@ process align_and_qsFilter {
         path("${reads.baseName}.fail.cram"), emit: fail
     script:
     // bonito doesn't do qs tag -- just convert to cram
-    def filter = params.use_bonito ? "-e '[qs] >= ${params.qscore_filter}'" : ""
+    def filter = params.use_bonito ? "" : "-e '[qs] >= ${params.qscore_filter}'"
     """
     samtools bam2fq -@ ${params.ubam_bam2fq_threads} -T 1 ${reads} \
         | minimap2 -y -t ${params.ubam_map_threads} -ax map-ont ${mmi_reference} - \
@@ -157,7 +157,7 @@ process qsFilter {
         path("${reads.baseName}.fail.cram"), emit: fail
     script:
     // bonito doesn't do qs tag -- just convert to cram
-    def filter = params.use_bonito ? "-e '[qs] >= ${params.qscore_filter}'" : ""
+    def filter = params.use_bonito ? "" : "-e '[qs] >= ${params.qscore_filter}'"
     """
     samtools view ${filter} ${reads} \
         --output ${reads.baseName}.pass.cram \
