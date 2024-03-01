@@ -146,14 +146,37 @@ process progressive_pairings {
     output:
         path("pairing_stats.${task.index}")
     script:
+        // By passing around a directory
+        // The state file within it will be a symlink containing the latest cumulative data
+        // eg. ls -l will look like this
+        // pairing_stats.1 -> /work/ab/xyz/pairing_stats.1
+        // pairing_stats.2 -> /work/ab/xyz/pairing_stats.1
+        // pairing_stats.3 -> /work/ab/xyz/pairing_stats.1
         def new_input = pairings instanceof BlankSeparatedList ? pairings.first() : pairings
         def state = pairings instanceof BlankSeparatedList ? pairings.last() : "NOSTATE"
-        def output = "pairing_stats.${task.index}"
+        def new_state = "pairing_stats.${task.index}"
+        def new_file = "pairing_stats.new"
+        // n.b where this is used below the files will have been moved, hence new_state
+        def dynamic_input = "${new_state}/sample.pairings_stats"
     """
-    cat ${new_input} > pairing_stats.${task.index}
-    if [ -e ${state} ]; then
-        awk 'NR>1 {print \$0}' ${state} >> pairing_stats.${task.index}
+    # If first iteration create empty directory
+    if [[ "${task.index}" == "1" ]]; then
+        mkdir "${state}"
     fi
+    # cp to another new folder
+    cp -r "${state}" "${new_state}" 
+    # Create a new file with headers
+    echo "Filename,Duplex,Paired,Simplex" > ${new_file}
+    # If dynamic_input exists, save it to new_file
+    if [ -f $dynamic_input ]; then
+        # append everything from the old state file in to the new file
+        # skip header with 'FNR>1' as already added above
+        awk 'FNR>1' "${dynamic_input}" >> ${new_file}
+    fi
+    # append everything from the latest input file in to the new file
+    awk 'FNR>1' ${new_input} >> ${new_file}
+    # the new file now becomes the next state to be output
+    mv "${new_file}" "${dynamic_input}"
     """
 }
 
@@ -171,7 +194,7 @@ process makeReport {
         path "wf-basecalling-*.html"
     script:
         String report_name = "wf-basecalling-report.html"
-        def report_pairings = params.duplex ? "--pairings ${pairings}" : ""
+        def report_pairings = params.duplex ? "--pairings ${pairings}/*" : ""
     """
     report.py $report_name \
         --sample_name $params.sample_name \
@@ -333,8 +356,10 @@ workflow {
     // stream stats for report
     stat = bamstats(basecaller_out.chunked_pass_crams, ref_cache)
     stats = progressive_stats.scan(stat.json)
+
     // stream pair stats for report
-    pairings = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
+    // use first() to coerce this to a value channel
+    pairings = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE", checkIfExists: true).first()
     if (params.duplex){
         // Separate the simplex reads belonging to a pair from the
         // duplex and simplex reads.
