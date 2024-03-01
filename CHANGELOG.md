@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 ### Fixed
 - Workflow accepting incompatible `--fastq_only` and `--duplex` options
+- Dynamically updated report in `--watch_path` mode.
 
 ## [v1.1.6]
 ### Fixed
