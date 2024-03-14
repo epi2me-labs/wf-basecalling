@@ -73,7 +73,7 @@ nextflow run epi2me-labs/wf-basecalling \
     --dorado_ext pod5 \
     --out_dir output \
     --basecaller_cfg dna_r10.4.1_e8.2_400bps_hac@v4.1.0 \
-    --remora_cfg "dna_r10.4.1_e8.2_400bps_hac@v4.0.0_5mCG@v2"
+    --remora_cfg "dna_r10.4.1_e8.2_400bps_hac@v4.1.0_5mCG_5hmCG@v2"
 ```
 For further information about running a workflow on the cmd line see https://labs.epi2me.io/wfquickstart/
 
