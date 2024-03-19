@@ -160,13 +160,6 @@ The folder may contain other folders of FAST5 or POD5 files and all files will b
 | read_limit | integer | Stop processing data when a particular number of reads have been analysed. | By default the workflow will run indefinitely when using the real time watch path option. This will set the upper bound on the number of reads that will be analysed before the workflow is automatically stopped and no more data is analysed. |  |
 
 
-### Generic options
-
-| Nextflow parameter name  | Type | Description | Help | Default |
-|--------------------------|------|-------------|------|---------|
-| disable_ping | boolean | Disable workflow ping. |  | False |
-
-
 
 
 
