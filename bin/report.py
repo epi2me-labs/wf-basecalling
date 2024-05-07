@@ -23,8 +23,11 @@ def main(args):
     logger = get_named_logger("Report")
     report = labs.LabsReport(
         "Basecalling report", "wf-basecalling",
-        args.params, args.versions)
+        args.params, args.versions,
+        args.workflow_version,)
 
+    # Create statistics from the histogram json generated from
+    #  the workflow, summarising the results from bamstats.
     if args.stats:
         with report.add_section("Read summary", "Read summary"):
             with open(args.stats[0]) as f:
@@ -33,11 +36,14 @@ def main(args):
                 total_reads = {}
                 for sample_id, data in sorted(datas.items()):
                     with tabs.add_tab(sample_id):
+                        total_reads[sample_id] = data['total_reads']
+                        if data['total_reads'] == 0:
+                            p("No reads called.")
+                            continue
                         with Grid(columns=2):
                             EZChart(
                                 report_utils.read_quality_plot(data), THEME)
                             EZChart(report_utils.read_length_plot(data), THEME)
-                            total_reads[sample_id] = data['total_reads']
                 with tabs.add_tab('total'):
                     with Grid(columns=1):  # total read counts per sample
                         df_stats = pd.DataFrame.from_dict(total_reads.items())
@@ -54,18 +60,21 @@ def main(args):
             with open(args.pairings[0]) as f:
                 # Load data
                 data = pd.read_csv(f)
-                # Make summary
-                data_sum = data\
-                    .drop(columns=['Filename'])\
-                    .sum()\
-                    .to_frame()\
-                    .T
-                data_sum['Pairing rate'] = data_sum['Paired'] / data_sum['Simplex']
-                data_sum['Pairing rate'] = data_sum['Pairing rate'].round(4)
-                DataTable.from_pandas(
-                    data_sum, use_index=False, export=True,
-                    file_name=(
-                        f'{args.sample_name}-wf-basecalling-duplex-summary'))
+                if data.empty:
+                    p("No reads called.")
+                else:
+                    # Make summary
+                    data_sum = data\
+                        .drop(columns=['Filename'])\
+                        .sum()\
+                        .to_frame()\
+                        .T
+                    data_sum['Pairing rate'] = data_sum['Paired'] / data_sum['Simplex']
+                    data_sum['Pairing rate'] = data_sum['Pairing rate'].round(4)
+                    DataTable.from_pandas(
+                        data_sum, use_index=False, export=True,
+                        file_name=(
+                            f'{args.sample_name}-wf-basecalling-duplex-summary'))
             p(
                 'Simplex: the number of initial reads.',
                 'Paired: the number of simplex reads belonging to a pair.',
@@ -98,6 +107,9 @@ def argparser():
     parser.add_argument(
         "--commit", default='unknown',
         help="git commit of the executed workflow")
+    parser.add_argument(
+        "--workflow_version", default='unknown',
+        help="Workflow version")
     return parser
 
 
