@@ -201,6 +201,7 @@ process makeReport {
         --versions versions \
         --stats $per_read_stats \
         --params params.json \
+        --workflow_version ${workflow.manifest.version} \
         $report_pairings
     """
 }
