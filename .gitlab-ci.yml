@@ -55,7 +55,8 @@ docker-run:
                 "duplex_fqonly_fail",
                 "watch_path",
                 "no_reference",
-                "output_bam"
+                "output_bam",
+                "polya_tails"
             ]
     rules:
         # NOTE As we're overriding the rules block for the included docker-run
@@ -102,6 +103,11 @@ docker-run:
              NF_IGNORE_PROCESSES: "output_pod5s"
              ASSERT_NEXTFLOW_FAILURE: "yes"
              ASSERT_NEXTFLOW_FAILURE_REXP : "Duplex requires the outputs of Dorado to be in BAM format."
+        - if: $MATRIX_NAME == "polya_tails"
+          variables:
+             NF_BEFORE_SCRIPT: "wget -qO demo_data.tar.gz https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-polya-demo.tar.gz && tar -xzvf demo_data.tar.gz && cat wf-basecalling-polya-demo/VERSION && rm demo_data.tar.gz"
+             NF_WORKFLOW_OPTS: "--poly_a_config  wf-basecalling-polya-demo/polya_conf.toml --input  wf-basecalling-polya-demo/input --ref  wf-basecalling-polya-demo/RCS-100A.fasta --basecaller_cfg rna004_130bps_hac@v3.0.1 ${NF_PROCESS_OPTIONS}"
+             NF_IGNORE_PROCESSES: "output_pod5s,pair_stats,progressive_pairings,split_xam,stopCondition"
 
 
 aws-run:

@@ -165,6 +165,13 @@
                         "fast5",
                         "pod5"
                     ]
+                },
+                "poly_a_config": {
+                    "title": "Poly(A) config toml file",
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Provide this TOML file to turn on and configure dorado poly(A) calling.",
+                    "help_text": "This TOML file allows you to turn on and configure poly(A) tail calling options in dorado. This feature is described [here](https://github.com/nanoporetech/dorado?tab=readme-ov-file#polya-tail-estimation)."
                 }
             },
             "allOf": [

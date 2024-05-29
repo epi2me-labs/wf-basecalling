@@ -336,6 +336,7 @@ workflow {
         "output_bam": params.output_bam,
         "dorado_ext": params.dorado_ext,
         "fastq_only": params.fastq_only,
+        "poly_a_config": params.poly_a_config
     ])
     software_versions = getVersions()
     workflow_params = getParams()

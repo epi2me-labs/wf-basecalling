@@ -25,7 +25,8 @@ Map parse_arguments(Map arguments) {
             "watch_path": false,
             "dorado_ext": "pod5",
             "output_bam": false,
-            "fastq_only": false
+            "fastq_only": false,
+            "poly_a_config": null,
         ],
         name: "signal_ingress")
     return parser.parse_args(arguments)
@@ -43,6 +44,8 @@ process dorado {
         tuple val(chunk_idx), path('*')
         tuple val(basecaller_cfg), path("dorado_model"), val(basecaller_model_override)
         tuple val(remora_cfg), path("remora_model"), val(remora_model_override)
+        val do_estimate_poly_a
+        path poly_a_config
     output:
         path("${chunk_idx}.ubam"), emit: ubams
         path("converted/*.pod5"), emit: converted_pod5s, optional: true
@@ -51,6 +54,7 @@ process dorado {
     def remora_args = (params.basecaller_basemod_threads > 0 && (params.remora_cfg || remora_model_override)) && !params.duplex ? "--modified-bases-models ${remora_model}" : ''
     def model_arg = basecaller_model_override ? "dorado_model" : "\${DRD_MODELS_PATH}/${basecaller_cfg}"
     def basecaller_args = params.basecaller_args ?: ''
+    def poly_a_args = do_estimate_poly_a ? "--estimate-poly-a --poly-a-config ${poly_a_config}": ''
     def caller = params.duplex ? "duplex" : "basecaller"
     // CW-2569: delete pod5 is not required them to be emitted
     def signal_path = (params.duplex && params.dorado_ext == 'fast5') ? "converted/" : "."
@@ -72,6 +76,7 @@ process dorado {
         ${signal_path} \
         ${remora_args} \
         ${basecaller_args} \
+        ${poly_a_args} \
         --device ${params.cuda_device} | samtools view --no-PG -b -o ${chunk_idx}.ubam -
 
     # CW-2569: delete the pod5s, if emit not required.
@@ -246,6 +251,15 @@ workflow wf_dorado {
         else {
             ref = file("${projectDir}/data/OPTIONAL_FILE")
         }
+        
+        // Deal with a Poly(A) configs. If config is present then turn on Poly(A) calling
+        Boolean do_estimate_poly_a = false
+        if (margs.poly_a_config ){
+            poly_a_config = file(params.poly_a_config, checkIfExists: true)
+            do_estimate_poly_a = true
+        } else {
+            poly_a_config = file("${projectDir}/data/OPTIONAL_FILE")
+        }
 
         // Munge models
         // I didn't want to use the same trick from wf-humvar as I thought the models here are much larger
@@ -362,7 +376,9 @@ workflow wf_dorado {
             called_bams = dorado(
                 ready_pod5_chunks,
                 tuple(margs.basecaller_model_name, basecaller_model, basecaller_model_override),
-                tuple(margs.remora_model_name, remora_model, remora_model_override)
+                tuple(margs.remora_model_name, remora_model, remora_model_override),
+                do_estimate_poly_a,
+                poly_a_config
             )
         }
 
