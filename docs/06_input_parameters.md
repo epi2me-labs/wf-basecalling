@@ -25,6 +25,7 @@
 | remora_cfg | string | Name of the model to use for calling modified bases. | Required for calling modified bases while basecalling. The model list only shows models that are compatible with this workflow. |  |
 | dorado_ext | string | File extension for Dorado inputs. | Set this to fast5 if you have not converted your fast5 to pod5. It is recommended to [convert existing fast5 files to pod5 for use with Dorado](https://github.com/nanoporetech/pod5-file-format/blob/master/python/README.md#pod5-convert-from-fast5). | pod5 |
 | poly_a_config | string | Provide this TOML file to turn on and configure dorado poly(A) calling. | This TOML file allows you to turn on and configure poly(A) tail calling options in dorado. This feature is described [here](https://github.com/nanoporetech/dorado?tab=readme-ov-file#polya-tail-estimation). |  |
+| barcode_kit | string | Name of the kit to use for barcoding. Demultiplex the data. | Providing a kit here will instruct the workflow to demultiplex your 'pass' data to BAM files which can be found in your output dir under the folder 'demuxed' in a struture reminissent of MinKNOW. |  |
 
 
 ### Advanced basecalling options
@@ -38,6 +39,7 @@
 | remora_model_path | string | Override the named remora model with a custom remora model. | For typical use, users should set --remora_cfg which will use a named model from inside the container. Experimental or custom models will not be available in the container and can be loaded from the host with --remora_model_path. |  |
 | basecaller_basemod_threads | number | Number of threads to use for base modification calling. | You must set this to > 0 when using a modbase aware model. Modbase calling does not require much additional CPU and should be set carefully when using GPU servers with a small number of CPUs per GPU. | 2 |
 | basecaller_args | string | Additional command line arguments to pass to the basecaller process. |  |  |
+| demux_args | string | Additional command line arguments to pass to the basecaller barcoding process. |  |  |
 
 
 ### Multiprocessing Options

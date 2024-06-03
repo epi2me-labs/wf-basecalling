@@ -32,6 +32,7 @@ Map parse_arguments(Map arguments) {
     return parser.parse_args(arguments)
 }
 
+//TODO think about trimming
 process dorado {
     label "wf_dorado"
     label "wf_basecalling"
@@ -56,6 +57,8 @@ process dorado {
     def basecaller_args = params.basecaller_args ?: ''
     def poly_a_args = do_estimate_poly_a ? "--estimate-poly-a --poly-a-config ${poly_a_config}": ''
     def caller = params.duplex ? "duplex" : "basecaller"
+    def barcode_kit_args = params.barcode_kit ? "--kit-name ${params.barcode_kit}": ''
+    def demux_args = params.demux_args ?: ''
     // CW-2569: delete pod5 is not required them to be emitted
     def signal_path = (params.duplex && params.dorado_ext == 'fast5') ? "converted/" : "."
     def delete_pod5s = !params.output_pod5 ? "rm -r converted/" : "echo 'No cleanup'"
@@ -77,6 +80,8 @@ process dorado {
         ${remora_args} \
         ${basecaller_args} \
         ${poly_a_args} \
+        ${barcode_kit_args} \
+        ${demux_args} \
         --device ${params.cuda_device} | samtools view --no-PG -b -o ${chunk_idx}.ubam -
 
     # CW-2569: delete the pod5s, if emit not required.
@@ -223,6 +228,35 @@ process combine_dorado_summaries {
         fi
     done | gzip -c > !{params.sample_name}.summary.tsv.gz
     '''
+}
+
+//if demuxing split the BAMS
+process split_calls {
+    label "wf_basecalling"
+    label "wf_dorado"
+    cpus 1
+    publishDir "${params.out_dir}/demuxed",
+        mode: 'copy',
+        pattern: "demuxed/*.bam",
+        saveAs: { fn ->
+            if (fn.endsWith("unclassified.bam")) {
+                "unclassified/reads.bam"
+            }
+            else if (fn.endsWith("mixed.bam")) {
+                "mixed/reads.bam"
+            }
+            else {
+                "${fn.replace("demuxed/${params.barcode_kit}_","").replace(".bam","")}/reads.bam"
+            }
+        }
+    input:
+        tuple path(cram), path(crai)
+    output:
+        path("demuxed/*")
+    shell:
+    """
+    dorado demux --output-dir demuxed --no-classify ${cram}
+    """
 }
 
 
@@ -413,6 +447,17 @@ workflow wf_dorado {
         else {
             pass = merge_pass_calls(ref, crams.pass.collect(), "pass", output_exts)
             fail = merge_fail_calls(ref, crams.fail.collect(), "fail", output_exts)
+        }
+        if (params.barcode_kit) {
+            // this will output into the following structure
+            // output/demuxed/
+            // ├── barcode01
+            // │   └── reads.bam
+            // ├── barcode09
+            // │   └── reads.bam
+            // └── unclassified
+            //     └── reads.bam
+            split_calls(pass)
         }
 
     emit:

@@ -6,7 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 ### Added
+- Support for `dorado demux` to demultiplex barcoded runs. Specfy your `--barcode_kit` to activate demultiplexing.
 - Support for poly-a tail length estimation with `--estimate_poly_a` and `--poly_a_config`. You can configure by providng a TOML file to `--poly_a_config` described [here](https://github.com/nanoporetech/dorado?tab=readme-ov-file#polya-tail-estimation)
+
 ## [v1.1.9]
 ### Fixed
 - Report crashing when no data are present in the input pod5.
