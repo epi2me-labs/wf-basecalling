@@ -172,6 +172,52 @@
                     "format": "file-path",
                     "description": "Provide this TOML file to turn on and configure dorado poly(A) calling.",
                     "help_text": "This TOML file allows you to turn on and configure poly(A) tail calling options in dorado. This feature is described [here](https://github.com/nanoporetech/dorado?tab=readme-ov-file#polya-tail-estimation)."
+                },
+                "barcode_kit": {
+                    "title": "Sequencing kit name",
+                    "type": "string",
+                    "description": "Name of the kit to use for barcoding. Demultiplex the data.",
+                    "help_text": "Providing a kit here will instruct the workflow to demultiplex your 'pass' data to BAM files which can be found in your output dir under the folder 'demuxed' in a struture reminissent of MinKNOW.",
+                    "enum": [
+                        "EXP-NBD103",
+                        "EXP-NBD104",
+                        "EXP-NBD114",
+                        "EXP-NBD196",
+                        "EXP-PBC001",
+                        "EXP-PBC096",
+                        "SQK-16S024",
+                        "SQK-16S114-24",
+                        "SQK-LWB001",
+                        "SQK-MLK111-96-XL",
+                        "SQK-MLK114-96-XL",
+                        "SQK-NBD111-24",
+                        "SQK-NBD111-96",
+                        "SQK-NBD114-24",
+                        "SQK-NBD114-96",
+                        "SQK-PBK004",
+                        "SQK-PCB109",
+                        "SQK-PCB110",
+                        "SQK-PCB111-24",
+                        "SQK-PCB114-24",
+                        "SQK-RAB201",
+                        "SQK-RAB204",
+                        "SQK-RBK001",
+                        "SQK-RBK004",
+                        "SQK-RBK110-96",
+                        "SQK-RBK111-24",
+                        "SQK-RBK111-96",
+                        "SQK-RBK114-24",
+                        "SQK-RBK114-96",
+                        "SQK-RLB001",
+                        "SQK-RPB004",
+                        "SQK-RPB114-24",
+                        "TWIST-16-UDI",
+                        "TWIST-96A-UDI",
+                        "VSK-PTC001",
+                        "VSK-VMK001",
+                        "VSK-VMK004",
+                        "VSK-VPS001"
+                    ]
                 }
             },
             "allOf": [
@@ -251,6 +297,10 @@
                     "type": "string",
                     "description": "Additional command line arguments to pass to the basecaller process."
                 },
+                "demux_args": {
+                    "type": "string",
+                    "description": "Additional command line arguments to pass to the basecaller barcoding process."
+                },
                 "experimental": {
                     "type": "boolean",
                     "default": false,
@@ -284,6 +334,9 @@
                 "output_pod5": [
                     "duplex",
                     "dorado_ext"
+                ],
+                "demux_args": [
+                    "barcode_kit"
                 ]
             }
         },

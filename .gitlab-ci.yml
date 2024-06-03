@@ -56,7 +56,8 @@ docker-run:
                 "watch_path",
                 "no_reference",
                 "output_bam",
-                "polya_tails"
+                "polya_tails",
+                "demux"
             ]
     rules:
         # NOTE As we're overriding the rules block for the included docker-run
@@ -108,7 +109,11 @@ docker-run:
              NF_BEFORE_SCRIPT: "wget -qO demo_data.tar.gz https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-polya-demo.tar.gz && tar -xzvf demo_data.tar.gz && cat wf-basecalling-polya-demo/VERSION && rm demo_data.tar.gz"
              NF_WORKFLOW_OPTS: "--poly_a_config  wf-basecalling-polya-demo/polya_conf.toml --input  wf-basecalling-polya-demo/input --ref  wf-basecalling-polya-demo/RCS-100A.fasta --basecaller_cfg rna004_130bps_hac@v3.0.1 ${NF_PROCESS_OPTIONS}"
              NF_IGNORE_PROCESSES: "output_pod5s,pair_stats,progressive_pairings,split_xam,stopCondition"
-
+        - if: $MATRIX_NAME == "demux"
+          variables:
+             NF_BEFORE_SCRIPT: "wget -qO demo_data.tar.gz https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demux-demo.tar.gz && tar -xzvf demo_data.tar.gz && cat wf-basecalling-demux-demo/README && rm demo_data.tar.gz"
+             NF_WORKFLOW_OPTS: "--input wf-basecalling-demux-demo/input --barcode_kit SQK-RBK114-96 --basecaller_cfg dna_r10.4.1_e8.2_400bps_hac@v5.0.0 ${NF_PROCESS_OPTIONS}"
+             NF_IGNORE_PROCESSES: "output_pod5s,pair_stats,progressive_pairings,split_xam,stopCondition,cram_cache"
 
 aws-run:
     rules:
