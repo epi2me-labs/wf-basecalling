@@ -252,7 +252,7 @@ process split_calls {
     input:
         tuple path(cram), path(crai)
     output:
-        path("demuxed/*")
+        path("demuxed/*.bam")
     shell:
     """
     dorado demux --output-dir demuxed --no-classify ${cram}
@@ -457,12 +457,15 @@ workflow wf_dorado {
             // │   └── reads.bam
             // └── unclassified
             //     └── reads.bam
-            split_calls(pass)
+            barcode_bams = split_calls(pass)
+        } else {
+            barcode_bams = Channel.empty()
         }
 
     emit:
         chunked_pass_crams = crams.pass
         pass = pass
+        barcode_bams = barcode_bams
         fail = fail
         output_exts = output_exts
         summary = summary
