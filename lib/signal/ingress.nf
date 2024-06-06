@@ -289,7 +289,7 @@ workflow wf_dorado {
         // Deal with a Poly(A) configs. If config is present then turn on Poly(A) calling
         Boolean do_estimate_poly_a = false
         if (margs.poly_a_config ){
-            poly_a_config = file(params.poly_a_config, checkIfExists: true)
+            poly_a_config = file(margs.poly_a_config, checkIfExists: true)
             do_estimate_poly_a = true
         } else {
             poly_a_config = file("${projectDir}/data/OPTIONAL_FILE")
