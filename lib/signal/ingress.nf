@@ -52,7 +52,7 @@ process dorado {
         path("converted/*.pod5"), emit: converted_pod5s, optional: true
     script:
     def remora_model = remora_model_override ? "remora_model" : "\${DRD_MODELS_PATH}/${remora_cfg}"
-    def remora_args = (params.basecaller_basemod_threads > 0 && (params.remora_cfg || remora_model_override)) && !params.duplex ? "--modified-bases-models ${remora_model}" : ''
+    def remora_args = (params.basecaller_basemod_threads > 0 && (params.remora_cfg || remora_model_override)) ? "--modified-bases-models ${remora_model}" : ''
     def model_arg = basecaller_model_override ? "dorado_model" : "\${DRD_MODELS_PATH}/${basecaller_cfg}"
     def basecaller_args = params.basecaller_args ?: ''
     def poly_a_args = do_estimate_poly_a ? "--estimate-poly-a --poly-a-config ${poly_a_config}": ''
