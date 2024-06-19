@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 ### Added
 - Modified base calling with `--duplex`.
+- APK 5.0.0 model.
+### Changed
+- Updated Dorado to v0.7.2 (see https://github.com/nanoporetech/dorado/releases/tag/v0.7.2)
 
 ## [v1.2.2]
 ### Changes
