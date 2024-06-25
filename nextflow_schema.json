@@ -113,7 +113,7 @@
                     "type": "boolean",
                     "description": "Run the basecaller in duplex mode.",
                     "default": false,
-                    "help_text": "By default, the workflow conducts simplex basecalling. If you used a chemistry and flowcell combination that supported duplex reads, you should switch this option on. Currently, duplex basecalling is not compatible with modified basecalling. Additionally, duplex basecalling within this workflow is reliant on internal optimisations to organise input files for better duplex rates, which is not possible when using streaming basecalling; therefore duplex combined with the watch_path option could lead to lower duplex rates."
+                    "help_text": "By default the workflow conducts simplex basecalling. If you used a chemistry and flowcell combination that supports duplex reads, you may switch this option on. This option is incompatible with the watch_path option due to the way the input files must be traversed in order to find duplex pairs."
                 },
                 "remora_cfg": {
                     "title": "Modified basecalling model configuration",
