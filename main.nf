@@ -4,7 +4,8 @@ import nextflow.util.BlankSeparatedList
 
 nextflow.enable.dsl = 2
 
-include { wf_dorado } from './lib/signal/ingress'
+include { wf_dorado; faidx } from './lib/signal/ingress'
+include { configure_igv } from './lib/common'
 nextflow.preview.recursion=true
 
 process getVersions {
@@ -293,6 +294,11 @@ workflow {
     if (!params.basecaller_cfg && !params.basecaller_model_path) {
         throw new Exception(colors.red + "You must provide a basecaller profile with --basecaller_cfg <profile>" + colors.reset)
     }
+    if (params.ref) {
+        if (params.ref.toLowerCase().endsWith("gz")) {
+            throw new Exception(colors.red + "Compressed reference genomes are not supported." + colors.reset)
+        }
+    }
     if (params.duplex && params.fastq_only) {
         throw new Exception(colors.red + "Duplex requires the outputs of Dorado to be in BAM format." + colors.reset)
     }
@@ -347,9 +353,11 @@ workflow {
     // create cram ref cache if there is a ref (basecaller always emit cram)
     if (params.ref) {
         ref_cache = cram_cache(ref)
+        ref_fai = faidx(ref)
     }
     else {
         ref_cache = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
+        ref_fai = Channel.empty()
     }
 
     // stream stats for report
@@ -386,8 +394,24 @@ workflow {
     // Make the report
     report = makeReport(stats, pairings, software_versions, workflow_params) | last | collect | output_last
 
+    // Create IGV if the reference genome is passed
+    if (params.ref){
+        igv_files = ref
+            // We only show the pass BAM files as tracks.
+            | concat (
+                ref_fai,
+                basecaller_out.pass 
+            )
+            | flatten
+            | map { it -> "${it.Name}" }
+            | collectFile(name: "file-names.txt", newLine: true, sort: false)
+        igv_conf = configure_igv(igv_files, Channel.of(null), Channel.of(null), Channel.of(null))
+    } else {
+        igv_conf = Channel.empty()
+    }
+
     // dump out artifacts thanks for calling
-    output_stream(emit_xam.concat(pairings.last(), software_versions, workflow_params, ref, ref_cache))
+    output_stream(emit_xam.concat(pairings.last(), software_versions, workflow_params, ref, ref_fai, ref_cache, igv_conf))
 
     // dump pod5s if requested
     if (params.duplex && params.dorado_ext == 'fast5' && params.output_pod5){

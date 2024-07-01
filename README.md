@@ -41,41 +41,63 @@ ARM processor support: False
 
 ## Install and run
 
-<!---Nextflow text remains the same across workflows, update example cmd and demo data sections.--->
-These are instructions to install and run the workflow on command line. You can also access the workflow via the [EPI2ME application](https://labs.epi2me.io/downloads/).
 
-The workflow uses [Nextflow](https://www.nextflow.io/) to manage compute and software resources, therefore nextflow will need to be installed before attempting to run the workflow.
+These are instructions to install and run the workflow on command line.
+You can also access the workflow via the
+[EPI2ME Desktop application](https://labs.epi2me.io/downloads/).
 
-The workflow can currently be run using either [Docker](https://www.docker.com/products/docker-desktop) or
-[Singularity](https://docs.sylabs.io/guides/3.0/user-guide/index.html) to provide isolation of
-the required software. Both methods are automated out-of-the-box provided
-either docker or singularity is installed. This is controlled by the [`-profile`](https://www.nextflow.io/docs/latest/config.html#config-profiles) parameter as exemplified below.
+The workflow uses [Nextflow](https://www.nextflow.io/) to manage
+compute and software resources,
+therefore Nextflow will need to be
+installed before attempting to run the workflow.
 
-It is not required to clone or download the git repository in order to run the workflow.
-More information on running EPI2ME workflows can be found on our [website](https://labs.epi2me.io/wfindex).
+The workflow can currently be run using either
+[Docker](https://www.docker.com/products/docker-desktop
+or [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/index.html)
+to provide isolation of the required software.
+Both methods are automated out-of-the-box provided
+either Docker or Singularity is installed.
+This is controlled by the
+[`-profile`](https://www.nextflow.io/docs/latest/config.html#config-profiles)
+parameter as exemplified below.
 
-The following command can be used to obtain the workflow. This will pull the repository in to the assets folder of nextflow and provide a list of all parameters available for the workflow as well as an example command:
+It is not required to clone or download the git repository
+in order to run the workflow.
+More information on running EPI2ME workflows can
+be found on our [website](https://labs.epi2me.io/wfindex).
+
+The following command can be used to obtain the workflow.
+This will pull the repository in to the assets folder of
+Nextflow and provide a list of all parameters
+available for the workflow as well as an example command:
 
 ```
-nextflow run epi2me-labs/wf-basecalling –-help
+nextflow run epi2me-labs/wf-basecalling --help
 ```
-A demo dataset is provided for testing of the workflow. It can be downloaded using:
+To update a workflow to the latest version on the command line use
+the following command:
+```
+nextflow pull epi2me-labs/wf-basecalling
+```
+A demo dataset is provided for testing of the workflow.
+It can be downloaded and unpacked using the following commands:
 ```
 wget https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demo.tar.gz
 tar -xzvf wf-basecalling-demo.tar.gz
 ```
-The workflow can be run with the demo data using:
+The workflow can then be run with the downloaded demo data using:
 ```
 nextflow run epi2me-labs/wf-basecalling \
-    -profile singularity \
-    --input wf-basecalling-demo/input \
-    --ref wf-basecalling-demo/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta \
-    --dorado_ext pod5 \
-    --out_dir output \
-    --basecaller_cfg dna_r10.4.1_e8.2_400bps_hac@v4.1.0 \
-    --remora_cfg "dna_r10.4.1_e8.2_400bps_hac@v4.1.0_5mCG_5hmCG@v2"
+	--basecaller_cfg 'dna_r10.4.1_e8.2_400bps_hac@v4.1.0' \
+	--dorado_ext 'pod5' \
+	--input 'wf-basecalling-demo/input' \
+	--ref 'wf-basecalling-demo/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta' \
+	--remora_cfg 'dna_r10.4.1_e8.2_400bps_hac@v4.1.0_5mCG_5hmCG@v2' \
+	-profile standard
 ```
-For further information about running a workflow on the cmd line see https://labs.epi2me.io/wfquickstart/
+For further information about running a workflow on
+the command line see https://labs.epi2me.io/wfquickstart/
+
 
 
 
@@ -182,6 +204,9 @@ Output files may be aggregated including information for all samples or provided
 | Duplex alignment file of failed reads | {{ alias }}.fail.duplex.{{ format }} | BAM or CRAM file of duplex reads for the sample that fail QC filtering. Created if duplex basecalling is requested. | per-sample |
 | Simplex alignment file index of failed reads | {{ alias }}.fail.simplex.{{ format }}.{{ index_format }} | The index of the resulting BAM or CRAM file with the simplex reads that fail QC filtering. | per-sample |
 | Duplex alignment file index of failed reads | {{ alias }}.fail.duplex.{{ format }}.{{ index_format }} | The index of the resulting BAM or CRAM file with the duplex reads that fail QC filtering. Created if duplex basecalling is requested. | per-sample |
+| Reference FASTA file | {{ ref }} | Reference FASTA file. | aggregated |
+| Index of the reference FASTA file | {{ ref }}.fai | Index of the reference FASTA file. | aggregated |
+| JSON configuration file for IGV browser | igv.json | JSON configuration file to be loaded in IGV for visualising alignments against the reference genome. | aggregated |
 
 
 
