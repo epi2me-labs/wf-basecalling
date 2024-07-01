@@ -191,6 +191,20 @@ process make_mmi {
     """
 }
 
+process faidx {
+    label "wf_basecalling"
+    cpus 1
+    memory 4.GB
+    input:
+        path(ref)
+    output:
+        path("${ref}.fai")
+    script:
+    """
+    samtools faidx ${ref}
+    """
+}
+
 
 
 // Compute summaries from the raw unmapped bam files
