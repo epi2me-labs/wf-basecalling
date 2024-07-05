@@ -20,8 +20,10 @@ Map parse_arguments(Map arguments) {
             "remora_model_name",
         ],
         kwargs:[
+            "run_alignment": false,
             "basecaller_model_path": null,
             "remora_model_path": null,
+            "input_mmi": null,
             "watch_path": false,
             "dorado_ext": "pod5",
             "output_bam": false,
@@ -177,36 +179,6 @@ process qsFilter {
 }
 
 
-process make_mmi {
-    label "wf_basecalling"
-    cpus 4
-    memory 16.GB
-    input:
-        path(ref)
-    output:
-        path("ref.mmi")
-    script:
-    """
-    minimap2 -t ${task.cpus} -x map-ont -d ref.mmi ${ref}
-    """
-}
-
-process faidx {
-    label "wf_basecalling"
-    cpus 1
-    memory 4.GB
-    input:
-        path(ref)
-    output:
-        path("${ref}.fai")
-    script:
-    """
-    samtools faidx ${ref}
-    """
-}
-
-
-
 // Compute summaries from the raw unmapped bam files
 process dorado_summary {
     label "wf_basecalling"
@@ -289,17 +261,6 @@ workflow wf_dorado {
         }
         output_exts = Channel.of([align_ext, index_ext]).collect()
 
-        if (margs.input_ref) {
-            if (margs.fastq_only) {
-                log.warn "Ignoring request to output FASTQ as you have provided a reference for alignment."
-            }
-            // create value channel of ref by calling first
-            ref = Channel.fromPath(margs.input_ref, checkIfExists: true).first()
-        }
-        else {
-            ref = file("${projectDir}/data/OPTIONAL_FILE")
-        }
-        
         // Deal with a Poly(A) configs. If config is present then turn on Poly(A) calling
         Boolean do_estimate_poly_a = false
         if (margs.poly_a_config ){
@@ -439,12 +400,9 @@ workflow wf_dorado {
         }
 
         // Run filtering or mapping
-        if (margs.input_ref) {
-            // make mmi for faster alignment
-            mmi_ref = make_mmi(ref)
-
+        if (margs.run_alignment) {
             // align, qscore_filter and sort
-            crams = align_and_qsFilter(mmi_ref, ref, called_bams.ubams)
+            crams = align_and_qsFilter(margs.input_mmi, margs.input_ref, called_bams.ubams)
         }
         else {
             // skip alignment and just collate pass and fail
@@ -454,13 +412,13 @@ workflow wf_dorado {
         // merge passes and fails
         // we've aliased the merge_calls process to save writing some unpleasant looking flow
         // FASTQ output can only be used when there is no input_ref
-        if (margs.fastq_only && !margs.input_ref) {
+        if (margs.fastq_only && !margs.run_alignment) {
             pass = merge_pass_calls_to_fastq(crams.pass.collect(), "pass")
             fail = merge_fail_calls_to_fastq(crams.fail.collect(), "fail")
         }
         else {
-            pass = merge_pass_calls(ref, crams.pass.collect(), "pass", output_exts)
-            fail = merge_fail_calls(ref, crams.fail.collect(), "fail", output_exts)
+            pass = merge_pass_calls(margs.input_ref, crams.pass.collect(), "pass", output_exts)
+            fail = merge_fail_calls(margs.input_ref, crams.fail.collect(), "fail", output_exts)
         }
         if (params.barcode_kit) {
             // this will output into the following structure

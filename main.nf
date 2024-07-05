@@ -4,8 +4,9 @@ import nextflow.util.BlankSeparatedList
 
 nextflow.enable.dsl = 2
 
-include { wf_dorado; faidx } from './lib/signal/ingress'
+include { wf_dorado } from './lib/signal/ingress'
 include { configure_igv } from './lib/common'
+include { prepare_reference } from './lib/reference'
 nextflow.preview.recursion=true
 
 process getVersions {
@@ -35,33 +36,18 @@ process getParams {
 }
 
 
-process cram_cache {
-    label "wf_common"
-    input:
-        path reference
-    output:
-        path("ref_cache/"), emit: cram_cache
-    script:
-    """
-    seq_cache_populate.pl -root ref_cache/ ${reference}
-    """
-}
-
-
 process bamstats {
     label "wf_common"
     cpus params.stats_threads
     input:
         path "input.cram" // chunks are always CRAM
-        path ref_cache
+        tuple path(ref_cache), env(REF_PATH)
 
     output:
         path "bamstats.tsv", emit: stats
         path "stats.${task.index}.json", emit: json
     script:
-        String ref_path = ref_cache.name.startsWith('OPTIONAL_FILE') ? '' : "export REF_PATH=${ref_cache}/%2s/%2s/%s"
     """
-    ${ref_path}
     bamstats --threads=${task.cpus} -u input.cram > bamstats.tsv
     fastcat_histogram.py \
             --sample_id "${params.sample_name}" \
@@ -126,13 +112,11 @@ process pair_stats {
     cpus 1
     input:
         path cram // chunks are always CRAM
-        path ref_cache
+        tuple path(ref_cache), env(REF_PATH)
     output:
         path("pairs.${task.index}.csv"), emit: csv
     script:
-        String ref_path = ref_cache.name.startsWith('OPTIONAL_FILE') ? '' : "export REF_PATH=${ref_cache}/%2s/%2s/%s"
     """
-    ${ref_path}
     duplex_stats.py ${cram} pairs.${task.index}.csv
     """
 }
@@ -294,11 +278,6 @@ workflow {
     if (!params.basecaller_cfg && !params.basecaller_model_path) {
         throw new Exception(colors.red + "You must provide a basecaller profile with --basecaller_cfg <profile>" + colors.reset)
     }
-    if (params.ref) {
-        if (params.ref.toLowerCase().endsWith("gz")) {
-            throw new Exception(colors.red + "Compressed reference genomes are not supported." + colors.reset)
-        }
-    }
     if (params.duplex && params.fastq_only) {
         throw new Exception(colors.red + "Duplex requires the outputs of Dorado to be in BAM format." + colors.reset)
     }
@@ -327,10 +306,32 @@ workflow {
         }
     }
 
+    // Prepare the reference genome
+    Boolean run_alignment = false
+    if (params.ref) {
+        prepare_reference([
+            "input_ref": params.ref,
+            "output_mmi": true,
+            "output_cache": true
+        ])
+        ref = prepare_reference.out.ref
+        ref_cache = prepare_reference.out.ref_cache
+        ref_fai = prepare_reference.out.ref_idx
+        ref_mmi = prepare_reference.out.ref_mmi
+        run_alignment = true
+    } else {
+        ref = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE") | collect
+        ref_cache = Channel.of([file("${projectDir}/data/OPTIONAL_FILE"), null]) | collect
+        ref_fai = Channel.empty()
+        ref_mmi = Channel.empty()
+    }
+
     // ring ring it's for you
     basecaller_out = wf_dorado([
         "input_path": params.input,
-        "input_ref": params.ref,
+        "input_ref": ref,
+        "input_mmi": ref_mmi,
+        "run_alignment": run_alignment,
         "basecaller_model_name": params.use_bonito ? params.bonito_cfg : params.basecaller_cfg,
         "remora_model_name": params.remora_cfg,
         "basecaller_model_path": params.basecaller_model_path,
@@ -343,22 +344,6 @@ workflow {
     ])
     software_versions = getVersions()
     workflow_params = getParams()
-
-    if (params.ref) {
-        ref = Channel.fromPath(params.ref, checkIfExists: true).first()
-    } else {
-        ref = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
-    }
-
-    // create cram ref cache if there is a ref (basecaller always emit cram)
-    if (params.ref) {
-        ref_cache = cram_cache(ref)
-        ref_fai = faidx(ref)
-    }
-    else {
-        ref_cache = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
-        ref_fai = Channel.empty()
-    }
 
     // stream stats for report
     stat = bamstats(basecaller_out.chunked_pass_crams, ref_cache)
@@ -411,7 +396,19 @@ workflow {
     }
 
     // dump out artifacts thanks for calling
-    output_stream(emit_xam.concat(pairings.last(), software_versions, workflow_params, ref, ref_fai, ref_cache, igv_conf))
+    output_stream(
+        emit_xam
+        | concat(
+            pairings.last(),
+            software_versions,
+            workflow_params,
+            ref,
+            ref_fai,
+            ref_cache.map{it[0]},
+            igv_conf
+        )
+        | filter{ it -> it.Name != "OPTIONAL_FILE"}
+    )
 
     // dump pod5s if requested
     if (params.duplex && params.dorado_ext == 'fast5' && params.output_pod5){

@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 ### Added
 - IGV configuration file with `--output_bam --ref` options.
+- Support for gzipped reference genomes.
 ### Changed
 - Reconciled workflow with wf-template v5.2.0
 
