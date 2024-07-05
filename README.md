@@ -253,6 +253,7 @@ To select the relevant model see the `dorado` repository for a [table of availab
 ### 3. Aligning to a reference
 
 The workflow can optionally perform the alignment of the basecalled data using [minimap2](https://github.com/lh3/minimap2) to a reference of choice, provided with the `--ref` option.
+Additionally, the workflow will generate an IGV configuration file. This file allows the user to view the filtered aligned BAM in the EPI2ME Desktop Application in the Viewer tab.
 
 ### 4. Duplex calling
 
