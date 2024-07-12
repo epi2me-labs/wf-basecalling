@@ -9,10 +9,6 @@ variables:
     NF_BEFORE_SCRIPT: "wget -qO demo_data.tar.gz https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demo.tar.gz && tar -xzvf demo_data.tar.gz && cat wf-basecalling-demo/VERSION && rm demo_data.tar.gz"
     NF_PROCESS_OPTIONS: "--basecaller_chunk_size 1 --ubam_map_threads 5 --ubam_sort_threads 2 --ubam_bam2fq_threads 1"
 
-conda-run:
-    rules:
-        - when: never
-
 check-models:
     extends: .preflight
     script:
