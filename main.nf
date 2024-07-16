@@ -290,6 +290,9 @@ workflow {
     if (params.duplex && params.dorado_ext != 'pod5') {
         log.warn("Duplex currently requires POD5 files and is not compatible with FAST5. The workflow will convert the FAST5 inputs to POD5 format automatically.")
     }
+    if (params.duplex && params.barcode_kit) {
+        throw new Exception(colors.red + "Duplex does not support barcoded data." + colors.reset)
+    }
 
     // Ensure modbase threads are set if calling them
     if (params.remora_cfg || params.remora_model_path) {

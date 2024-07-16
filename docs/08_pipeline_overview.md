@@ -48,3 +48,8 @@ Since `dorado duplex` requires the inputs to be in `pod5` format, the workflow w
 ### 5. Real-time analysis
 
 wf-basecalling can perform the basecalling as the pod5 files are generated. To enable this, provide the `--watch_path` option. The workflow will process the newly generated files as soon as they become available.
+
+### 6. Barcode classification and demultiplexing
+
+wf-basecalling can perform data demultiplexing by providing the appropriate barcoding kit with the `--barcode_kit` option.
+This will generate a new `{{ out_dir }}/demuxed` directory, with one subfolder for each barcode and one additional `unclassified` folder for reads that cannot be demultiplexed. This option is not available for `dorado duplex`.
