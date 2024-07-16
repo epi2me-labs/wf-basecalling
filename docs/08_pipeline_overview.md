@@ -53,3 +53,4 @@ wf-basecalling can perform the basecalling as the pod5 files are generated. To e
 
 wf-basecalling can perform data demultiplexing by providing the appropriate barcoding kit with the `--barcode_kit` option.
 This will generate a new `{{ out_dir }}/demuxed` directory, with one subfolder for each barcode and one additional `unclassified` folder for reads that cannot be demultiplexed. This option is not available for `dorado duplex`.
+Please note that the demultiplexed reads will always be in BAM format, even when the user sets `--output_bam false`.
