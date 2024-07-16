@@ -334,6 +334,7 @@ workflow {
         "input_path": params.input,
         "input_ref": ref,
         "input_mmi": ref_mmi,
+        "input_cache": ref_cache,
         "run_alignment": run_alignment,
         "basecaller_model_name": params.use_bonito ? params.bonito_cfg : params.basecaller_cfg,
         "remora_model_name": params.remora_cfg,

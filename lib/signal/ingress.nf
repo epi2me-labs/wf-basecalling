@@ -24,6 +24,7 @@ Map parse_arguments(Map arguments) {
             "basecaller_model_path": null,
             "remora_model_path": null,
             "input_mmi": null,
+            "input_cache": null,
             "watch_path": false,
             "dorado_ext": "pod5",
             "output_bam": false,
@@ -237,11 +238,16 @@ process split_calls {
         }
     input:
         tuple path(cram), path(crai)
+        tuple path(ref_cache), env(REF_PATH)
     output:
         path("demuxed/*.bam")
-    shell:
+    script:
+    // CW-4509: as described [here](https://github.com/nanoporetech/dorado#Demultiplexing-mapped-reads)
+    // to preserve mapping information when demuxing, we need to ask for
+    // `--no-trim`. Being aligned, it is also worth ask for it to be sorted/indexed.
+    def is_aligned = params.ref ? "--no-trim --sort-bam" : ""
     """
-    dorado demux --output-dir demuxed --no-classify ${cram}
+    dorado demux --output-dir demuxed ${is_aligned} --no-classify ${cram}
     """
 }
 
@@ -429,7 +435,7 @@ workflow wf_dorado {
             // │   └── reads.bam
             // └── unclassified
             //     └── reads.bam
-            barcode_bams = split_calls(pass)
+            barcode_bams = split_calls(pass, margs.input_cache)
         } else {
             barcode_bams = Channel.empty()
         }

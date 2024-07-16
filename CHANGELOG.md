@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reconciled workflow with wf-template v5.2.1.
 ### Fixed
 - Workflow starting with `--duplex --barcode_kit`, despite duplex not supporting barcoding.
+- Workflow crashing with `--ref {{ reference }} --barcode_kit`.
+- Aligned reads will no longer be trimmed when demuxing to preserve mapping information.
 
 ## [v1.3.0]
 ### Added
