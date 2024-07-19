@@ -51,7 +51,7 @@ process dorado {
         path("${chunk_idx}.ubam"), emit: ubams
         path("converted/*.pod5"), emit: converted_pod5s, optional: true
     script:
-    def remora_model = remora_model_override ? "remora_model" : "\${DRD_MODELS_PATH}/${remora_cfg}"
+    def remora_model = remora_cfg instanceof String ? "\${DRD_MODELS_PATH}/${remora_cfg}" : remora_cfg.collect { "\${DRD_MODELS_PATH}/$it" }.join(',')
     def remora_args = (params.basecaller_basemod_threads > 0 && (params.remora_cfg || remora_model_override)) ? "--modified-bases-models ${remora_model}" : ''
     def model_arg = basecaller_model_override ? "dorado_model" : "\${DRD_MODELS_PATH}/${basecaller_cfg}"
     def basecaller_args = params.basecaller_args ?: ''
