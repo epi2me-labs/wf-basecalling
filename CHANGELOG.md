@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workflow starting with `--duplex --barcode_kit`, despite duplex not supporting barcoding.
 - Workflow crashing with `--ref {{ reference }} --barcode_kit`.
 - Aligned reads will no longer be trimmed when demuxing to preserve mapping information.
+- Workflow emits confusing warning about Bonito filtering when using Dorado.
 
 ## [v1.3.0]
 ### Added
