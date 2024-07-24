@@ -162,7 +162,6 @@ process qsFilter {
     label "wf_basecalling"
     cpus 2
     memory 16.GB
-    log.warn("Reads are not filtered when using bonito.")
     input:
         path reads
     output:
@@ -171,6 +170,9 @@ process qsFilter {
     script:
     // bonito doesn't do qs tag -- just convert to cram
     def filter = params.use_bonito ? "" : "-e '[qs] >= ${params.qscore_filter}'"
+    if (params.use_bonito) {
+        log.warn("Reads are not filtered when using bonito.")
+    }
     """
     samtools view ${filter} ${reads} \
         --output ${reads.baseName}.pass.cram \
