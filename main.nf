@@ -281,6 +281,9 @@ workflow {
     if (params.duplex && params.fastq_only) {
         throw new Exception(colors.red + "Duplex requires the outputs of Dorado to be in BAM format." + colors.reset)
     }
+    if (params.ref && params.fastq_only) {
+        log.warn("Alignment will output data in BAM format and ignore `--fastq_only`.")
+    }
     if (params.basecaller_cfg && params.basecaller_model_path) {
         log.warn("--basecaller_cfg and --basecaller_model_path both provided. Custom remora model path (${params.basecaller_cfg}) will override enum choice (${params.basecaller_model_path}).")
     }
