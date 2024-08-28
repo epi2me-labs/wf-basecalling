@@ -12,8 +12,7 @@
 |--------------------------|------|-------------|------|---------|
 | out_dir | string | Directory for output of all files. |  | output |
 | sample_name | string | Sample name to prefix file names of workflow outputs. |  | SAMPLE |
-| fastq_only | boolean | Output unaligned FASTQ instead of unaligned CRAM. | FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM even if fastq_only is set. | False |
-| output_bam | boolean | Output unaligned BAM instead of unaligned CRAM. | Some downstream applications do not yet support CRAM and will require a BAM file. Enabling this option will output BAM instead of CRAM. You should only use this option if you know that it is needed. Output files will be larger than the corresponding CRAM files that would have been written if this option was not enabled. | False |
+| output_fmt | string | Desired file format of files created by basecalling and alignment. | FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM unless BAM is selected. | cram |
 
 
 ### Basecalling options

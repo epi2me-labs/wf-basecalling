@@ -27,8 +27,7 @@ Map parse_arguments(Map arguments) {
             "input_cache": null,
             "watch_path": false,
             "dorado_ext": "pod5",
-            "output_bam": false,
-            "fastq_only": false,
+            "output_fmt": "cram",
             "poly_a_config": null,
         ],
         name: "signal_ingress")
@@ -263,7 +262,7 @@ workflow wf_dorado {
         // determine output extentions
         def align_ext = "cram"
         def index_ext = "crai"
-        if (margs.output_bam) {
+        if (margs.output_fmt == "bam") {
             align_ext = "bam"
             index_ext = "bai"
         }
@@ -420,7 +419,7 @@ workflow wf_dorado {
         // merge passes and fails
         // we've aliased the merge_calls process to save writing some unpleasant looking flow
         // FASTQ output can only be used when there is no input_ref
-        if (margs.fastq_only && !margs.run_alignment) {
+        if (margs.output_fmt == "fastq" && !margs.run_alignment) {
             pass = merge_pass_calls_to_fastq(crams.pass.collect(), "pass")
             fail = merge_fail_calls_to_fastq(crams.fail.collect(), "fail")
         }

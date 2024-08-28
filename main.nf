@@ -278,11 +278,11 @@ workflow {
     if (!params.basecaller_cfg && !params.basecaller_model_path) {
         throw new Exception(colors.red + "You must provide a basecaller profile with --basecaller_cfg <profile>" + colors.reset)
     }
-    if (params.duplex && params.fastq_only) {
+    if (params.duplex && params.output_fmt == "fastq") {
         throw new Exception(colors.red + "Duplex requires the outputs of Dorado to be in BAM format." + colors.reset)
     }
-    if (params.ref && params.fastq_only) {
-        log.warn("Alignment will output data in BAM format and ignore `--fastq_only`.")
+    if (params.ref && params.output_fmt == "fastq") {
+        log.warn("Alignment will output data in BAM format and ignore `--output_fmt fastq`.")
     }
     if (params.basecaller_cfg && params.basecaller_model_path) {
         log.warn("--basecaller_cfg and --basecaller_model_path both provided. Custom remora model path (${params.basecaller_cfg}) will override enum choice (${params.basecaller_model_path}).")
@@ -344,9 +344,8 @@ workflow {
         "basecaller_model_path": params.basecaller_model_path,
         "remora_model_path": params.remora_model_path,
         "watch_path": params.watch_path,
-        "output_bam": params.output_bam,
+        "output_fmt": params.output_fmt,
         "dorado_ext": params.dorado_ext,
-        "fastq_only": params.fastq_only,
         "poly_a_config": params.poly_a_config
     ])
     software_versions = getVersions()

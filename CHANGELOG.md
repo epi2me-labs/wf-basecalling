@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - IGV configuration file with `--output_bam --ref` options.
 - Support for gzipped reference genomes.
+- `output_fmt` selects the output format for basecalled and aligned files.
 ### Changed
 - Reconciled workflow with wf-template v5.2.3.
 ### Fixed
@@ -15,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workflow crashing with `--ref {{ reference }} --barcode_kit`.
 - Aligned reads will no longer be trimmed when demuxing to preserve mapping information.
 - Workflow emits confusing warning about Bonito filtering when using Dorado.
+### Removed
+- `fastq_only` and `output_bam` options replaced by `output_fmt`.
+    - `--output_fmt fastq` can be used to output unaligned FASTQ instead of unaligned CRAM.
+    - `--output_fmt bam` can be used to output unaligned or aligned BAM instead of CRAM.
 
 ## [v1.3.0]
 ### Added
