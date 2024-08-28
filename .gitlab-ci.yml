@@ -80,7 +80,7 @@ docker-run:
         - if: $MATRIX_NAME == "dorado-output-fastq"
           variables:
              NF_BEFORE_SCRIPT: "wget -qO demo_data.tar.gz https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demo.tar.gz && tar -xzvf demo_data.tar.gz && cat wf-basecalling-demo/VERSION && rm demo_data.tar.gz && wget -q -O wf-basecalling-demo/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa.gz https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-human-reference/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa.gz"
-             NF_WORKFLOW_OPTS: "--input wf-basecalling-demo/input --ref wf-basecalling-demo/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa.gz --basecaller_cfg dna_r10.4.1_e8.2_400bps_hac@v4.1.0 --fastq_only ${NF_PROCESS_OPTIONS}"
+             NF_WORKFLOW_OPTS: "--input wf-basecalling-demo/input --ref wf-basecalling-demo/GCA_000001405.15_GRCh38_no_alt_analysis_set.fa.gz --basecaller_cfg dna_r10.4.1_e8.2_400bps_hac@v4.1.0 --output_fmt fastq ${NF_PROCESS_OPTIONS}"
              NF_IGNORE_PROCESSES: "stopCondition,pair_stats,progressive_pairings,dorado_summary,split_xam,combine_dorado_summaries,output_pod5s"
         - if: $MATRIX_NAME == "dorado_mod"
           variables:
@@ -100,12 +100,12 @@ docker-run:
              NF_IGNORE_PROCESSES: "cram_cache,stopCondition,pair_stats,progressive_pairings,dorado_summary,split_xam,combine_dorado_summaries,output_pod5s"
         - if: $MATRIX_NAME == "no_reference-output-fastq"
           variables:
-             NF_WORKFLOW_OPTS: "--input wf-basecalling-demo/input --basecaller_cfg dna_r10.4.1_e8.2_400bps_sup@v4.1.0 --fastq_only ${NF_PROCESS_OPTIONS}"
+             NF_WORKFLOW_OPTS: "--input wf-basecalling-demo/input --basecaller_cfg dna_r10.4.1_e8.2_400bps_sup@v4.1.0 --output_fmt fastq ${NF_PROCESS_OPTIONS}"
              NF_IGNORE_PROCESSES: "cram_cache,stopCondition,pair_stats,progressive_pairings,dorado_summary,split_xam,combine_dorado_summaries,output_pod5s"
              AFTER_NEXTFLOW_CMD: "[ -f wf-basecalling/SAMPLE.pass.fq.gz ] && echo 'Expected file wf-basecalling/SAMPLE.pass.fq.gz found' || exit 1"
         - if: $MATRIX_NAME == "output_bam"
           variables:
-             NF_WORKFLOW_OPTS: "--input wf-basecalling-demo/input --basecaller_cfg dna_r10.4.1_e8.2_400bps_sup@v4.1.0 --output_bam ${NF_PROCESS_OPTIONS}"
+             NF_WORKFLOW_OPTS: "--input wf-basecalling-demo/input --basecaller_cfg dna_r10.4.1_e8.2_400bps_sup@v4.1.0 --output_fmt bam ${NF_PROCESS_OPTIONS}"
              NF_IGNORE_PROCESSES: "cram_cache,stopCondition,pair_stats,progressive_pairings,dorado_summary,split_xam,combine_dorado_summaries,output_pod5s"
         - if: $MATRIX_NAME == "duplex"
           variables:
@@ -126,7 +126,7 @@ docker-run:
              NF_IGNORE_PROCESSES: "output_pod5s"
         - if: $MATRIX_NAME == "duplex_fqonly_fail"
           variables:
-             NF_WORKFLOW_OPTS: "--input wf-basecalling-demo/input --ref wf-basecalling-demo/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta --basecaller_cfg dna_r10.4.1_e8.2_400bps_sup@v4.1.0 --watch_path --read_limit 3000 --fastq_only --duplex ${NF_PROCESS_OPTIONS}"
+             NF_WORKFLOW_OPTS: "--input wf-basecalling-demo/input --ref wf-basecalling-demo/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta --basecaller_cfg dna_r10.4.1_e8.2_400bps_sup@v4.1.0 --watch_path --read_limit 3000 --output_fmt fastq --duplex ${NF_PROCESS_OPTIONS}"
              NF_IGNORE_PROCESSES: "output_pod5s"
              ASSERT_NEXTFLOW_FAILURE: "yes"
              ASSERT_NEXTFLOW_FAILURE_REXP : "Duplex requires the outputs of Dorado to be in BAM format."
