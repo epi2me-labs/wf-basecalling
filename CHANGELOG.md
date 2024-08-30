@@ -6,11 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 ### Added
-- IGV configuration file with `--output_bam --ref` options.
+- IGV configuration file with `--ref --igv` options and either `--output_fmt bam` or `--output_fmt cram`.
 - Support for gzipped reference genomes.
 - `output_fmt` selects the output format for basecalled and aligned files.
 ### Changed
 - Reconciled workflow with wf-template v5.2.3.
+- Do not emit the reference FASTA file.
 ### Fixed
 - Workflow starting with `--duplex --barcode_kit`, despite duplex not supporting barcoding.
 - Workflow crashing with `--ref {{ reference }} --barcode_kit`.
