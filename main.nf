@@ -296,6 +296,9 @@ workflow {
     if (params.duplex && params.barcode_kit) {
         throw new Exception(colors.red + "Duplex does not support barcoded data." + colors.reset)
     }
+    if (params.igv && (!params.ref || params.output_fmt == 'fastq' )){
+        log.warn("IGV configuration works only for aligned BAM/CRAM outputs. Please provide a reference with `--ref`, and request either cram or bam output with `--output_fmt`.")
+    }
 
     // Ensure modbase threads are set if calling them
     if (params.remora_cfg || params.remora_model_path) {
@@ -386,17 +389,40 @@ workflow {
     report = makeReport(stats, pairings, software_versions, workflow_params) | last | collect | output_last
 
     // Create IGV if the reference genome is passed
-    if (params.ref){
-        igv_files = ref
+    if (params.ref && params.igv && params.output_fmt!='fastq'){
+        // Create temporary channel of FASTA + FAI
+        ref_ch = ref
+        | combine(
+            ref_fai
+        )
+
+        igv_files = ref_ch
+            // Use full path of the input reference, allowing to not emit the reference
+            | map{
+                fna, fai ->
+                // If the FASTA is compressed, then it should start with the work dir path, and therefore is emitted
+                String fna_path = fna.startsWith("${workflow.workDir}") ? "${fna.name}" : "${fna.toUriString()}"
+                // Same for the FAIDX
+                String fai_path = fai.startsWith("${workflow.workDir}") ? "${fai.name}" : "${fai.toUriString()}"
+                [fna_path, fai_path]
+            }
             // We only show the pass BAM files as tracks.
             | concat (
-                ref_fai,
-                basecaller_out.pass 
+                basecaller_out.pass | map{ it -> "${it.Name}" }
             )
             | flatten
-            | map { it -> "${it.Name}" }
             | collectFile(name: "file-names.txt", newLine: true, sort: false)
         igv_conf = configure_igv(igv_files, Channel.of(null), Channel.of(null), Channel.of(null))
+        // If the input reference is compressed, or the input fasta does not exists, emit faidx
+        if (params.ref.toLowerCase().endsWith("gz") || !file("${params.ref}.fai").exists()){
+            igv_conf = igv_conf
+            | concat(
+                // If either the FASTA or the FAI have been modified in any way, emit them
+                ref_ch
+                | flatten
+                | filter{it.startsWith("${workflow.workDir}")}
+            )
+        }
     } else {
         igv_conf = Channel.empty()
     }
@@ -408,9 +434,6 @@ workflow {
             pairings.last(),
             software_versions,
             workflow_params,
-            ref,
-            ref_fai,
-            ref_cache.map{it[0]},
             igv_conf
         )
         | filter{ it -> it.Name != "OPTIONAL_FILE"}

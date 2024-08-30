@@ -139,6 +139,7 @@ The folder may contain other folders of FAST5 or POD5 files and all files will b
 | out_dir | string | Directory for output of all files. |  | output |
 | sample_name | string | Sample name to prefix file names of workflow outputs. |  | SAMPLE |
 | output_fmt | string | Desired file format of files created by basecalling and alignment. | FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM unless BAM is selected. | cram |
+| igv | boolean | Visualize outputs in the EPI2ME IGV visualizer. | Enabling this option will visualize the output alignment files in the EPI2ME desktop app IGV visualizer. | False |
 
 
 ### Basecalling options
@@ -205,7 +206,6 @@ Output files may be aggregated including information for all samples or provided
 | Duplex alignment file of failed reads | {{ alias }}.fail.duplex.{{ format }} | BAM or CRAM file of duplex reads for the sample that fail QC filtering. Created if duplex basecalling is requested. | per-sample |
 | Simplex alignment file index of failed reads | {{ alias }}.fail.simplex.{{ format }}.{{ index_format }} | The index of the resulting BAM or CRAM file with the simplex reads that fail QC filtering. | per-sample |
 | Duplex alignment file index of failed reads | {{ alias }}.fail.duplex.{{ format }}.{{ index_format }} | The index of the resulting BAM or CRAM file with the duplex reads that fail QC filtering. Created if duplex basecalling is requested. | per-sample |
-| Reference FASTA file | {{ ref }} | Reference FASTA file. | aggregated |
 | Index of the reference FASTA file | {{ ref }}.fai | Index of the reference FASTA file. | aggregated |
 | JSON configuration file for IGV browser | igv.json | JSON configuration file to be loaded in IGV for visualising alignments against the reference genome. | aggregated |
 
@@ -276,12 +276,14 @@ Please note that the demultiplexed reads will always be in BAM format, even when
 ## Troubleshooting
 
 * Duplex mode with wf-basecalling is reliant on internal optimisations to organise input files for better duplex rates, which is not possible when using streaming basecalling; therefore duplex combined with the `--watch_path` option could lead to lower duplex rates than what would be achieved running the algorithm after sequencing is completed.
+* Renaming, moving or deleting the reference genome or the output directory from the location provided at runtime will cause IGV to not load anymore.
 
 
 
 ## FAQ's
 
 If your question is not answered here, please report any issues or suggestions on the [github issues](https://github.com/epi2me-labs/wf-basecalling/issues) page or start a discussion on the [community](https://community.nanoporetech.com/).
+
 
 
 

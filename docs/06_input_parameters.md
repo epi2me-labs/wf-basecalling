@@ -13,6 +13,7 @@
 | out_dir | string | Directory for output of all files. |  | output |
 | sample_name | string | Sample name to prefix file names of workflow outputs. |  | SAMPLE |
 | output_fmt | string | Desired file format of files created by basecalling and alignment. | FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM unless BAM is selected. | cram |
+| igv | boolean | Visualize outputs in the EPI2ME IGV visualizer. | Enabling this option will visualize the output alignment files in the EPI2ME desktop app IGV visualizer. | False |
 
 
 ### Basecalling options

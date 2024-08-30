@@ -72,14 +72,6 @@
       "optional": true,
       "type": "per-sample"
     },
-    "reference": {
-      "filepath": "{{ ref }}",
-      "title": "Reference FASTA file",
-      "description": "Reference FASTA file.",
-      "mime-type": "text/txt",
-      "optional": true,
-      "type": "aggregated"
-    },
     "reference-index": {
       "filepath": "{{ ref }}.fai",
       "title": "Index of the reference FASTA file",
