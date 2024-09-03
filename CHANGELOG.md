@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Reconciled workflow with wf-template v5.2.3.
 - Do not emit the reference FASTA file.
+- Collapse redundant RG and PG header lines when emitting BAM or CRAM.
 ### Fixed
 - Workflow starting with `--duplex --barcode_kit`, despite duplex not supporting barcoding.
 - Workflow crashing with `--ref {{ reference }} --barcode_kit`.
