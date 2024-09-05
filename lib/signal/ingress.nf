@@ -250,7 +250,8 @@ process split_calls {
             }
         }
     input:
-        tuple path(cram), path(crai)
+        // tuple path(cram), path(crai)
+        path(cram)
     output:
         path("demuxed/*.bam")
     shell:
