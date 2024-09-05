@@ -253,10 +253,16 @@ process split_calls {
         // tuple path(cram), path(crai)
         path(cram)
     output:
-        path("demuxed/*.bam")
+        path("demuxed/*")
     shell:
+    if (params.fastq_only) {
+        fastq_str = "--emit-fastq"
+    } else {
+        fastq_str = ""
+    }
+
     """
-    dorado demux --output-dir demuxed --no-classify ${cram}
+    dorado demux ${fastq_str} --output-dir demuxed --no-classify ${cram}
     """
 }
 
