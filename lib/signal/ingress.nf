@@ -237,7 +237,7 @@ process split_calls {
     cpus 1
     publishDir "${params.out_dir}/demuxed",
         mode: 'copy',
-        pattern: "demuxed/*.bam",
+        pattern: "demuxed/*",
         saveAs: { fn ->
             if (fn.endsWith("unclassified.bam")) {
                 "unclassified/reads.bam"
@@ -245,7 +245,16 @@ process split_calls {
             else if (fn.endsWith("mixed.bam")) {
                 "mixed/reads.bam"
             }
-            else {
+            else if (fn.endsWith("unclassified.fastq")) {
+                "unclassified/reads.fastq"
+            }
+            else if (fn.endsWith("mixed.fastq")) {
+                "mixed/reads.fastq"
+            }
+            else if (fn.endsWith("fastq")) {
+                "${fn.replace("demuxed/${params.barcode_kit}_","").replace(".fastq","")}/reads.fastq"
+            }
+            else if (fn.endsWith("bam")) {
                 "${fn.replace("demuxed/${params.barcode_kit}_","").replace(".bam","")}/reads.bam"
             }
         }
