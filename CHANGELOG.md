@@ -4,13 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [v1.4.0]
 ### Added
 - IGV configuration file with `--ref --igv` options and either `--output_fmt bam` or `--output_fmt cram`.
 - Support for gzipped reference genomes.
 - `output_fmt` selects the output format for basecalled and aligned files.
 ### Changed
-- Reconciled workflow with wf-template v5.2.3.
+- Updated Dorado to [v0.8.0](https://github.com/nanoporetech/dorado/releases/tag/v0.8.0)
+- Reconciled workflow with wf-template v5.2.6.
 - Do not emit the reference FASTA file.
 - Collapse redundant RG and PG header lines when emitting BAM or CRAM.
 ### Fixed
