@@ -3,6 +3,7 @@
 import argparse
 import json
 
+from bokeh.models import Title
 from dominate.tags import p
 import ezcharts as ezc
 from ezcharts.components.ezchart import EZChart
@@ -11,7 +12,7 @@ from ezcharts.layout.snippets import DataTable
 from ezcharts.layout.snippets import Grid
 from ezcharts.layout.snippets import Tabs
 import pandas as pd
-import report_utils
+from report_utils import read_length_plot, read_quality_plot
 from ezcharts.util import get_named_logger  # noqa: ABS101
 
 
@@ -42,16 +43,21 @@ def main(args):
                             continue
                         with Grid(columns=2):
                             EZChart(
-                                report_utils.read_quality_plot(data), THEME)
-                            EZChart(report_utils.read_length_plot(data), THEME)
+                                read_quality_plot(data), THEME)
+                            EZChart(read_length_plot(data), THEME)
                 with tabs.add_tab('total'):
                     with Grid(columns=1):  # total read counts per sample
                         df_stats = pd.DataFrame.from_dict(total_reads.items())
                         df_stats.columns = ['Sample_name', 'Number of reads']
                         plt = ezc.barplot(
                             data=df_stats, x='Sample_name', y='Number of reads')
-                        plt.title = {"text": "Number of reads per sample."}
-                        plt.tooltip = {'trigger': 'axis'}
+                        plt._fig.add_layout(
+                            Title(
+                                text="Number of reads per sample.",
+                                text_font_size="1.5em"
+                            ),
+                            'above'
+                        )
                         EZChart(plt, THEME)
 
     # If pairing rates are provided, show them.
