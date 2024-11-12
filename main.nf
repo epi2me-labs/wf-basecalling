@@ -349,7 +349,8 @@ workflow {
         "watch_path": params.watch_path,
         "output_fmt": params.output_fmt,
         "dorado_ext": params.dorado_ext,
-        "poly_a_config": params.poly_a_config
+        "poly_a_config": params.poly_a_config,
+        "qscore_filter": params.qscore_filter
     ])
     software_versions = getVersions()
     workflow_params = getParams()

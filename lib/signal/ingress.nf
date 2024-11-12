@@ -29,6 +29,7 @@ Map parse_arguments(Map arguments) {
             "dorado_ext": "pod5",
             "output_fmt": "cram",
             "poly_a_config": null,
+            "qscore_filter": null,
         ],
         name: "signal_ingress")
     return parser.parse_args(arguments)
@@ -137,6 +138,7 @@ process align_and_qsFilter {
         path mmi_reference
         path reference
         path reads
+        val qscore_filter
     output:
         // NOTE merge does not need an index if merging with region/BED (https://github.com/samtools/samtools/blob/969d44990df7fa9c7bda3a7140a2c1d1bd8c62a0/bam_sort.c#L1256-L1272)
         // so we can save a few cycles and just output the CRAM
@@ -144,7 +146,7 @@ process align_and_qsFilter {
         path("${reads.baseName}.fail.cram"), emit: fail
     script:
     // bonito doesn't do qs tag -- just convert to cram
-    def filter = params.use_bonito ? "" : "-e '[qs] >= ${params.qscore_filter}'"
+    def filter = params.use_bonito ? "" : "-e '[qs] >= ${qscore_filter}'"
     """
     samtools bam2fq -@ ${params.ubam_bam2fq_threads} -T 1 ${reads} \
         | minimap2 -y -t ${params.ubam_map_threads} -ax map-ont ${mmi_reference} - \
@@ -163,12 +165,13 @@ process qsFilter {
     memory 16.GB
     input:
         path reads
+        val qscore_filter
     output:
         path("${reads.baseName}.pass.cram"), emit: pass
         path("${reads.baseName}.fail.cram"), emit: fail
     script:
     // bonito doesn't do qs tag -- just convert to cram
-    def filter = params.use_bonito ? "" : "-e '[qs] >= ${params.qscore_filter}'"
+    def filter = params.use_bonito ? "" : "-e '[qs] >= ${qscore_filter}'"
     if (params.use_bonito) {
         log.warn("Reads are not filtered when using bonito.")
     }
@@ -409,11 +412,11 @@ workflow wf_dorado {
         // Run filtering or mapping
         if (margs.run_alignment) {
             // align, qscore_filter and sort
-            crams = align_and_qsFilter(margs.input_mmi, margs.input_ref, called_bams.ubams)
+            crams = align_and_qsFilter(margs.input_mmi, margs.input_ref, called_bams.ubams, margs.qscore_filter)
         }
         else {
             // skip alignment and just collate pass and fail
-            crams = qsFilter(called_bams.ubams)
+            crams = qsFilter(called_bams.ubams, margs.qscore_filter)
         }
 
         // merge passes and fails
