@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - q-score filter added to signal ingress.
 ### Changed
 - Updated Dorado to [v0.8.2](https://github.com/nanoporetech/dorado/releases/tag/v0.8.2)
+- Reconciled workflow with wf-template v5.3.1.
 
 ## [v1.4.1]
 ### Changed
