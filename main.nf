@@ -24,6 +24,7 @@ process getVersions {
 
 process getParams {
     label "wf_basecalling"
+    cache false
     cpus 1
     output:
         path "params.json"
