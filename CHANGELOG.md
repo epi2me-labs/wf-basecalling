@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.4.5]
+### Changed
+- Reconciled workflow with wf-template v5.3.4.
+
 ## [v1.4.4]
 ### Changed
 - Updated Dorado to [v0.9.0](https://github.com/nanoporetech/dorado/releases/tag/v0.9.0)
