@@ -5,7 +5,9 @@ import nextflow.util.BlankSeparatedList
 nextflow.enable.dsl = 2
 
 include { wf_dorado } from './lib/signal/ingress'
-include { configure_igv } from './lib/common'
+include {
+    configure_igv;
+    getParams } from './lib/common'
 include { prepare_reference } from './lib/reference'
 nextflow.preview.recursion=true
 
@@ -18,21 +20,6 @@ process getVersions {
     """
     dorado --version 2>&1 | head -n1 | sed 's/^/dorado,/' >> versions.txt
     minimap2 --version | head -n 1 | sed 's/^/minimap2,/' >> versions.txt
-    """
-}
-
-
-process getParams {
-    label "wf_basecalling"
-    cache false
-    cpus 1
-    output:
-        path "params.json"
-    script:
-        def paramsJSON = new JsonBuilder(params).toPrettyString()
-    """
-    # Output nextflow params object to JSON
-    echo '$paramsJSON' > params.json
     """
 }
 
