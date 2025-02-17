@@ -1,6 +1,6 @@
 # Basecalling workflow
 
-Helper workflow for signal processing and primary data analysis of Oxford Nanopore Technologies' reads.
+Helper workflow for basecalling nanopore sequencing data.
 
 
 
