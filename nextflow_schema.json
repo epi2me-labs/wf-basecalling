@@ -69,6 +69,10 @@
                     "default": false,
                     "description": "Visualize outputs in the EPI2ME IGV visualizer.",
                     "help_text": "Enabling this option will visualize the output alignment files in the EPI2ME desktop app IGV visualizer."
+                },
+                "store_dir": {
+                    "type": "string",
+                    "hidden": true
                 }
             }
         },
