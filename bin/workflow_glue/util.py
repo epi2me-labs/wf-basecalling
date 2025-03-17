@@ -1,9 +1,9 @@
-"""The odd helper function."""
+"""The odd helper function.
 
+Be careful what you place in here. This file is imported into all glue.
+"""
 import argparse
 import logging
-
-from pydantic import BaseModel as PydanticBaseModel
 
 
 _log_name = None
@@ -53,13 +53,3 @@ def _log_level():
         help='Minimal logging; warnings only.')
 
     return parser
-
-
-class BaseModel(PydanticBaseModel):
-    """Base model used for results schemas, generated in pre-commit hook from yaml."""
-
-    class Config:
-        """Config items for the pydantic code."""
-
-        # make enums json serializable
-        use_enum_values = True
