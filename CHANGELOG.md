@@ -4,10 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [v1.5.0]
+This version of wf-basecalling updates Dorado to v0.9.5 which should improve the speed of basecalling on some GPU architectures.
+Dorado v0.9.5 increases the minimum NVIDIA Driver requirement to 525.105.
 ### Changed
 - Updated Dorado to [v0.9.5](https://github.com/nanoporetech/dorado/releases/tag/v0.9.5)
-    - Note that the minimum driver version is now 525.105.
+- Alignment uses the high quality long read preset (-x lr:hq) to reduce mapping time.
+- Basecaller model options are now reverse version sorted in the workflow schema to ensure newer models appear at the top of drop-downs and listings of available models.
+### Fixed
+- "Input data problem" error in downstream workflows necessitating use of the override_basecaller_cfg option. Relevant metadata from the input XAM header is now retained after alignment to ensure that the basecaller configuration is automatically detected.
 
 ## [v1.4.7]
 This maintenance release updates the models used for outputting results.

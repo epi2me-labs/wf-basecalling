@@ -147,9 +147,16 @@ process align_and_qsFilter {
     script:
     // bonito doesn't do qs tag -- just convert to cram
     def filter = params.use_bonito ? "" : "-e '[qs] >= ${qscore_filter}'"
+    String reset_cmd_body = "samtools reset -x tp,cm,s1,s2,NM,MD,AS,SA,ms,nn,ts,cg,cs,dv,de,rl"
+    String fastq_cmd_body = "samtools fastq -T 1"
     """
-    samtools bam2fq -@ ${params.ubam_bam2fq_threads} -T 1 ${reads} \
-        | minimap2 -y -t ${params.ubam_map_threads} -ax map-ont ${mmi_reference} - \
+    samtools view -H --no-PG ${reads} > reads.header
+    ${reset_cmd_body} --no-PG ${reads} -o - \
+        | ${fastq_cmd_body} -@ ${params.ubam_bam2fq_threads} - \
+        | minimap2 -y -t ${params.ubam_map_threads} -a -x lr:hq --cap-kalloc 100m --cap-sw-mem 50m ${mmi_reference} - \
+        | workflow-glue reheader_samstream reads.header \
+             --insert \$'@PG\\tID:reset\\tPN:samtools\\tCL:${reset_cmd_body}' \
+             --insert \$'@PG\\tID:fastq\\tPN:samtools\\tCL:${fastq_cmd_body}' \
         | samtools sort -@ ${params.ubam_sort_threads} \
         | samtools view ${filter} \
               --output ${reads.baseName}.pass.cram \

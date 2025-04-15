@@ -72,7 +72,7 @@ process make_mmi {
         path("ref.mmi")
     script:
     """
-    minimap2 -t ${task.cpus} -x map-ont -d ref.mmi ${ref}
+    minimap2 -t ${task.cpus} -x lr:hq -d ref.mmi ${ref}
     """
 }
 
