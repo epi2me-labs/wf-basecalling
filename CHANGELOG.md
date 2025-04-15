@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+### Changed
+- Updated Dorado to [v0.9.5](https://github.com/nanoporetech/dorado/releases/tag/v0.9.5)
+    - Note that the minimum driver version is now 525.105.
+
 ## [v1.4.7]
 This maintenance release updates the models used for outputting results.
 This release is to support our other workflows.
