@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.5.1]
+The updates in this release do not affect wf-basecalling but are required for EPI2ME workflows that make use of wf-basecalling, to maintain compliance with our latest wf-template standard.
+Users do not need to update to this release.
+### Changed
+- Updated to wf-template v5.6.1, changing:
+    - pre-commit configuration to resolve an internal dependency problem with flake8. This has no effect on the workflow.
+    - Log banner art to say "EPI2ME" instead of "EPI2ME Labs" to match current branding. This has no effect on the workflow outputs.
+
 ## [v1.5.0]
 This version of wf-basecalling updates Dorado to v0.9.5 which should improve the speed of basecalling on some GPU architectures.
 Dorado v0.9.5 increases the minimum NVIDIA Driver requirement to 525.105.
@@ -11,6 +19,7 @@ Dorado v0.9.5 increases the minimum NVIDIA Driver requirement to 525.105.
 - Updated Dorado to [v0.9.5](https://github.com/nanoporetech/dorado/releases/tag/v0.9.5)
 - Alignment uses the high quality long read preset (-x lr:hq) to reduce mapping time.
 - Basecaller model options are now reverse version sorted in the workflow schema to ensure newer models appear at the top of drop-downs and listings of available models.
+
 ### Fixed
 - "Input data problem" error in downstream workflows necessitating use of the override_basecaller_cfg option. Relevant metadata from the input XAM header is now retained after alignment to ensure that the basecaller configuration is automatically detected.
 
