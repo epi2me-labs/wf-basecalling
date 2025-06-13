@@ -89,11 +89,11 @@ tar -xzvf wf-basecalling-demo.tar.gz
 The workflow can then be run with the downloaded demo data using:
 ```
 nextflow run epi2me-labs/wf-basecalling \
-	--basecaller_cfg 'dna_r10.4.1_e8.2_400bps_hac@v4.1.0' \
+	--basecaller_cfg 'dna_r10.4.1_e8.2_400bps_hac@v5.0.0' \
 	--dorado_ext 'pod5' \
 	--input 'wf-basecalling-demo/input' \
 	--ref 'wf-basecalling-demo/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta' \
-	--remora_cfg 'dna_r10.4.1_e8.2_400bps_hac@v4.1.0_5mCG_5hmCG@v2' \
+	--remora_cfg 'dna_r10.4.1_e8.2_400bps_hac@v5.0.0_5mCG_5hmCG@v2' \
 	-profile standard
 ```
 

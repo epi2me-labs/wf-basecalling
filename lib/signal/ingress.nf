@@ -71,8 +71,8 @@ process dorado {
     }
     // If no pairs list, run vanilla duplex
     """
-    # CW-2569: convert the pod5s contextually
-    if [[ "${params.duplex}" == "true" && "${params.dorado_ext}" == "fast5" ]]; then
+    # convert fast5s
+    if [[ "${params.dorado_ext}" == "fast5" ]]; then
         pod5 convert fast5 ./*.fast5 --output ${signal_path} --threads ${task.cpus} --one-to-one ./
     fi
 
