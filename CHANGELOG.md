@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.5.2]
+This version of wf-basecalling updates Dorado to v1.0.2.
+Since Dorado v1.0.0, the 4 kHz models have been deprecated. Users with 4 kHz data must use wf-basecalling v1.5.1.
+Additionally, Dorado no longer supports FAST5 input. wf-basecalling will automatically convert FAST5 to POD5 but this is time consuming, users are strongly encouraged to provide POD5 files where possible.
+### Changed
+- Updated to Dorado [v1.0.2](https://github.com/nanoporetech/dorado/releases/tag/v1.0.2).
+- All FAST5 inputs are converted to POD5 for basecalling as FAST5 files are no longer supported by Dorado, previously this was only done for duplex basecalling.
+### Removed
+- Support for 4 kHz models as they are not supported by Dorado >v1.0.0.
+
 ## [v1.5.1]
 The updates in this release do not affect wf-basecalling but are required for EPI2ME workflows that make use of wf-basecalling, to maintain compliance with our latest wf-template standard.
 Users do not need to update to this release.

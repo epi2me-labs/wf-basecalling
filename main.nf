@@ -429,7 +429,7 @@ workflow {
     )
 
     // dump pod5s if requested
-    if (params.duplex && params.dorado_ext == 'fast5' && params.output_pod5){
+    if (params.dorado_ext == 'fast5' && params.output_pod5){
         output_pod5s(basecaller_out.converted_pod5s)
     }
 
