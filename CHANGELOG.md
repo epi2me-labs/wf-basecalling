@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+This release of wf-basecalling is made to support the development of other EPI2ME workflows that handle their own Poly(A) configuration. Users do not need to adopt this release.
+### Changed
+- Poly(A) configuration for dorado signal ingress now expects a channel
+
 ## [v1.5.2]
 This version of wf-basecalling updates Dorado to v1.0.2.
 Since Dorado v1.0.0, the 4 kHz models have been deprecated. Users with 4 kHz data must use wf-basecalling v1.5.1.
