@@ -322,6 +322,13 @@ workflow {
         ref_fai = Channel.empty()
         ref_mmi = Channel.empty()
     }
+    
+    // Prepare the poly(A) config if provided
+    if (params.poly_a_config){
+        poly_a_config = Channel.fromPath(params.poly_a_config, checkIfExists: true)
+    } else {
+        poly_a_config = Channel.fromPath("${projectDir}/data/OPTIONAL_FILE")
+    }
 
     // ring ring it's for you
     basecaller_out = wf_dorado([
@@ -337,7 +344,7 @@ workflow {
         "watch_path": params.watch_path,
         "output_fmt": params.output_fmt,
         "dorado_ext": params.dorado_ext,
-        "poly_a_config": params.poly_a_config,
+        "poly_a_config": poly_a_config | collect,
         "qscore_filter": params.qscore_filter
     ])
     software_versions = getVersions()
