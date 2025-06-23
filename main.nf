@@ -408,7 +408,8 @@ workflow {
             )
             | flatten
             | collectFile(name: "file-names.txt", newLine: true, sort: false)
-        igv_conf = configure_igv(igv_files, Channel.of(null), Channel.of(null), Channel.of(null))
+        boolean keep_track_order = false
+        igv_conf = configure_igv(igv_files, Channel.of(null), Channel.of(null), Channel.of(null), keep_track_order)
         // If the input reference is compressed, or the input fasta does not exists, emit faidx
         if (params.ref.toLowerCase().endsWith("gz") || !file("${params.ref}.fai").exists()){
             igv_conf = igv_conf
