@@ -5,7 +5,7 @@ import sys
 
 import pysam
 
-from .util import get_named_logger, wf_parser  # noqa: ABS101
+from ..util import get_named_logger, wf_parser  # noqa: ABS101
 
 
 def main(args):
@@ -29,7 +29,13 @@ def main(args):
     for xam_file in target_files:
         # get the `@SQ` and `@HD` lines in the header
         with pysam.AlignmentFile(xam_file, check_sq=False) as f:
-            sq_lines = f.header.get("SQ")
+            # compare only the SN/LN/M5 elements of SQ to avoid labelling XAM with
+            # same reference but different SQ.UR as mixed_header (see CW-4842)
+            sq_lines = [{
+                "SN": sq["SN"],
+                "LN": sq["LN"],
+                "M5": sq.get("M5"),
+            } for sq in f.header.get("SQ", [])]
             hd_lines = f.header.get("HD")
         # Check if it is sorted.
         # When there is more than one BAM, merging/sorting
@@ -60,6 +66,6 @@ def main(args):
 
 def argparser():
     """Argument parser for entrypoint."""
-    parser = wf_parser("check_bam_headers")
+    parser = wf_parser("check_bam_headers_in_dir")
     parser.add_argument("input_path", type=Path, help="Path to target directory")
     return parser

@@ -71,6 +71,22 @@
       "mime-type": "application/octet-stream",
       "optional": true,
       "type": "per-sample"
-    }
+    },
+    "reference-index": {
+      "filepath": "{{ ref }}.fai",
+      "title": "Index of the reference FASTA file",
+      "description": "Index of the reference FASTA file.",
+      "mime-type": "text/tab-separated-values",
+      "optional": true,
+      "type": "aggregated"
+    },
+    "igv-config": {
+      "filepath": "igv.json",
+      "title": "JSON configuration file for IGV browser",
+      "description": "JSON configuration file to be loaded in IGV for visualising alignments against the reference genome.",
+      "mime-type": "text/json",
+      "optional": true,
+      "type": "aggregated"
+    }    
   }
 }

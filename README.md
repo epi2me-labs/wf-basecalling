@@ -1,6 +1,6 @@
 # Basecalling workflow
 
-Helper workflow for signal processing and primary data analysis of Oxford Nanopore Technologies' reads.
+Helper workflow for basecalling nanopore sequencing data.
 
 
 
@@ -41,41 +41,65 @@ ARM processor support: False
 
 ## Install and run
 
-<!---Nextflow text remains the same across workflows, update example cmd and demo data sections.--->
-These are instructions to install and run the workflow on command line. You can also access the workflow via the [EPI2ME application](https://labs.epi2me.io/downloads/).
 
-The workflow uses [Nextflow](https://www.nextflow.io/) to manage compute and software resources, therefore nextflow will need to be installed before attempting to run the workflow.
+These are instructions to install and run the workflow on command line.
+You can also access the workflow via the
+[EPI2ME Desktop application](https://labs.epi2me.io/downloads/).
 
-The workflow can currently be run using either [Docker](https://www.docker.com/products/docker-desktop) or
-[Singularity](https://docs.sylabs.io/guides/3.0/user-guide/index.html) to provide isolation of
-the required software. Both methods are automated out-of-the-box provided
-either docker or singularity is installed. This is controlled by the [`-profile`](https://www.nextflow.io/docs/latest/config.html#config-profiles) parameter as exemplified below.
+The workflow uses [Nextflow](https://www.nextflow.io/) to manage
+compute and software resources,
+therefore Nextflow will need to be
+installed before attempting to run the workflow.
 
-It is not required to clone or download the git repository in order to run the workflow.
-More information on running EPI2ME workflows can be found on our [website](https://labs.epi2me.io/wfindex).
+The workflow can currently be run using either
+[Docker](https://docs.docker.com/get-started/)
+or [Singularity](https://docs.sylabs.io/guides/3.0/user-guide/index.html)
+to provide isolation of the required software.
+Both methods are automated out-of-the-box provided
+either Docker or Singularity is installed.
+This is controlled by the
+[`-profile`](https://www.nextflow.io/docs/latest/config.html#config-profiles)
+parameter as exemplified below.
 
-The following command can be used to obtain the workflow. This will pull the repository in to the assets folder of nextflow and provide a list of all parameters available for the workflow as well as an example command:
+It is not required to clone or download the git repository
+in order to run the workflow.
+More information on running EPI2ME workflows can
+be found on our [website](https://labs.epi2me.io/wfindex).
+
+The following command can be used to obtain the workflow.
+This will pull the repository in to the assets folder of
+Nextflow and provide a list of all parameters
+available for the workflow as well as an example command:
 
 ```
-nextflow run epi2me-labs/wf-basecalling –-help
+nextflow run epi2me-labs/wf-basecalling --help
 ```
-A demo dataset is provided for testing of the workflow. It can be downloaded using:
+To update a workflow to the latest version on the command line use
+the following command:
+```
+nextflow pull epi2me-labs/wf-basecalling
+```
+
+A demo dataset is provided for testing of the workflow.
+It can be downloaded and unpacked using the following commands:
 ```
 wget https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demo.tar.gz
 tar -xzvf wf-basecalling-demo.tar.gz
 ```
-The workflow can be run with the demo data using:
+The workflow can then be run with the downloaded demo data using:
 ```
 nextflow run epi2me-labs/wf-basecalling \
-    -profile singularity \
-    --input wf-basecalling-demo/input \
-    --ref wf-basecalling-demo/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta \
-    --dorado_ext pod5 \
-    --out_dir output \
-    --basecaller_cfg dna_r10.4.1_e8.2_400bps_hac@v4.1.0 \
-    --remora_cfg "dna_r10.4.1_e8.2_400bps_hac@v4.1.0_5mCG_5hmCG@v2"
+	--basecaller_cfg 'dna_r10.4.1_e8.2_400bps_hac@v5.0.0' \
+	--dorado_ext 'pod5' \
+	--input 'wf-basecalling-demo/input' \
+	--ref 'wf-basecalling-demo/GCA_000001405.15_GRCh38_no_alt_analysis_set.fasta' \
+	--remora_cfg 'dna_r10.4.1_e8.2_400bps_hac@v5.0.0_5mCG_5hmCG@v2' \
+	-profile standard
 ```
-For further information about running a workflow on the cmd line see https://labs.epi2me.io/wfquickstart/
+
+For further information about running a workflow on
+the command line see https://labs.epi2me.io/wfquickstart/
+
 
 
 
@@ -114,8 +138,8 @@ The folder may contain other folders of FAST5 or POD5 files and all files will b
 |--------------------------|------|-------------|------|---------|
 | out_dir | string | Directory for output of all files. |  | output |
 | sample_name | string | Sample name to prefix file names of workflow outputs. |  | SAMPLE |
-| fastq_only | boolean | Output unaligned FASTQ instead of unaligned CRAM. | FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM even if fastq_only is set. | False |
-| output_bam | boolean | Output unaligned BAM instead of unaligned CRAM. | Some downstream applications do not yet support CRAM and will require a BAM file. Enabling this option will output BAM instead of CRAM. You should only use this option if you know that it is needed. Output files will be larger than the corresponding CRAM files that would have been written if this option was not enabled. | False |
+| output_fmt | string | Desired file format of files created by basecalling and alignment. | FASTQ can only be output when a reference has not been provided. Aligned output will always be written to CRAM unless BAM is selected. | cram |
+| igv | boolean | Visualize outputs in the EPI2ME IGV visualizer. | Enabling this option will visualize the output alignment files in the EPI2ME desktop app IGV visualizer. | False |
 
 
 ### Basecalling options
@@ -127,7 +151,7 @@ The folder may contain other folders of FAST5 or POD5 files and all files will b
 | remora_cfg | string | Name of the model to use for calling modified bases. | Required for calling modified bases while basecalling. The model list only shows models that are compatible with this workflow. |  |
 | dorado_ext | string | File extension for Dorado inputs. | Set this to fast5 if you have not converted your fast5 to pod5. It is recommended to [convert existing fast5 files to pod5 for use with Dorado](https://github.com/nanoporetech/pod5-file-format/blob/master/python/README.md#pod5-convert-from-fast5). | pod5 |
 | poly_a_config | string | Provide this TOML file to turn on and configure dorado poly(A) calling. | This TOML file allows you to turn on and configure poly(A) tail calling options in dorado. This feature is described [here](https://github.com/nanoporetech/dorado?tab=readme-ov-file#polya-tail-estimation). |  |
-| barcode_kit | string | Name of the kit to use for barcoding. Demultiplex the data. | Providing a kit here will instruct the workflow to demultiplex your 'pass' data to BAM files which can be found in your output dir under the folder 'demuxed' in a struture reminissent of MinKNOW. |  |
+| barcode_kit | string | Name of the kit to use for barcoding. Demultiplex the data. | Providing a kit here will instruct the workflow to demultiplex your 'pass' data to BAM files, which can be found in your output directory under the folder 'demuxed' in a structure reminiscent of MinKNOW. |  |
 
 
 ### Advanced basecalling options
@@ -182,6 +206,8 @@ Output files may be aggregated including information for all samples or provided
 | Duplex alignment file of failed reads | {{ alias }}.fail.duplex.{{ format }} | BAM or CRAM file of duplex reads for the sample that fail QC filtering. Created if duplex basecalling is requested. | per-sample |
 | Simplex alignment file index of failed reads | {{ alias }}.fail.simplex.{{ format }}.{{ index_format }} | The index of the resulting BAM or CRAM file with the simplex reads that fail QC filtering. | per-sample |
 | Duplex alignment file index of failed reads | {{ alias }}.fail.duplex.{{ format }}.{{ index_format }} | The index of the resulting BAM or CRAM file with the duplex reads that fail QC filtering. Created if duplex basecalling is requested. | per-sample |
+| Index of the reference FASTA file | {{ ref }}.fai | Index of the reference FASTA file. | aggregated |
+| JSON configuration file for IGV browser | igv.json | JSON configuration file to be loaded in IGV for visualising alignments against the reference genome. | aggregated |
 
 
 
@@ -228,6 +254,7 @@ To select the relevant model see the `dorado` repository for a [table of availab
 ### 3. Aligning to a reference
 
 The workflow can optionally perform the alignment of the basecalled data using [minimap2](https://github.com/lh3/minimap2) to a reference of choice, provided with the `--ref` option.
+Additionally, the workflow will generate an IGV configuration file. This file allows the user to view the filtered aligned BAM in the EPI2ME Desktop Application in the Viewer tab.
 
 ### 4. Duplex calling
 
@@ -238,18 +265,25 @@ Since `dorado duplex` requires the inputs to be in `pod5` format, the workflow w
 
 wf-basecalling can perform the basecalling as the pod5 files are generated. To enable this, provide the `--watch_path` option. The workflow will process the newly generated files as soon as they become available.
 
+### 6. Barcode classification and demultiplexing
+
+wf-basecalling can perform data demultiplexing by providing the appropriate barcoding kit with the `--barcode_kit` option.
+This will generate a new `{{ out_dir }}/demuxed` directory, with one subfolder for each barcode and one additional `unclassified` folder for reads that cannot be demultiplexed. This option is not available for `dorado duplex`.
+Please note that the demultiplexed reads will always be in BAM format, even when the user sets `--output_bam false`.
 
 
 
 ## Troubleshooting
 
 * Duplex mode with wf-basecalling is reliant on internal optimisations to organise input files for better duplex rates, which is not possible when using streaming basecalling; therefore duplex combined with the `--watch_path` option could lead to lower duplex rates than what would be achieved running the algorithm after sequencing is completed.
+* Renaming, moving or deleting the reference genome or the output directory from the location provided at runtime will cause IGV to not load anymore.
 
 
 
 ## FAQ's
 
 If your question is not answered here, please report any issues or suggestions on the [github issues](https://github.com/epi2me-labs/wf-basecalling/issues) page or start a discussion on the [community](https://community.nanoporetech.com/).
+
 
 
 

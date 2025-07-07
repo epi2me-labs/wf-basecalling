@@ -20,13 +20,16 @@ Map parse_arguments(Map arguments) {
             "remora_model_name",
         ],
         kwargs:[
+            "run_alignment": false,
             "basecaller_model_path": null,
             "remora_model_path": null,
+            "input_mmi": null,
+            "input_cache": null,
             "watch_path": false,
             "dorado_ext": "pod5",
-            "output_bam": false,
-            "fastq_only": false,
+            "output_fmt": "cram",
             "poly_a_config": null,
+            "qscore_filter": null,
         ],
         name: "signal_ingress")
     return parser.parse_args(arguments)
@@ -45,7 +48,6 @@ process dorado {
         tuple val(chunk_idx), path('*')
         tuple val(basecaller_cfg), path("dorado_model"), val(basecaller_model_override)
         tuple val(remora_cfg), path("remora_model"), val(remora_model_override)
-        val do_estimate_poly_a
         path poly_a_config
     output:
         path("${chunk_idx}.ubam"), emit: ubams
@@ -55,7 +57,7 @@ process dorado {
     def remora_args = (params.basecaller_basemod_threads > 0 && (params.remora_cfg || remora_model_override)) ? "--modified-bases-models ${remora_model}" : ''
     def model_arg = basecaller_model_override ? "dorado_model" : "\${DRD_MODELS_PATH}/${basecaller_cfg}"
     def basecaller_args = params.basecaller_args ?: ''
-    def poly_a_args = do_estimate_poly_a ? "--estimate-poly-a --poly-a-config ${poly_a_config}": ''
+    def poly_a_args = poly_a_config.fileName.name == "OPTIONAL_FILE" ? "" : "--estimate-poly-a --poly-a-config ${poly_a_config}"
     def caller = params.duplex ? "duplex" : "basecaller"
     def barcode_kit_args = params.barcode_kit ? "--kit-name ${params.barcode_kit}": ''
     def demux_args = params.demux_args ?: ''
@@ -68,8 +70,8 @@ process dorado {
     }
     // If no pairs list, run vanilla duplex
     """
-    # CW-2569: convert the pod5s contextually
-    if [[ "${params.duplex}" == "true" && "${params.dorado_ext}" == "fast5" ]]; then
+    # convert fast5s
+    if [[ "${params.dorado_ext}" == "fast5" ]]; then
         pod5 convert fast5 ./*.fast5 --output ${signal_path} --threads ${task.cpus} --one-to-one ./
     fi
 
@@ -135,6 +137,7 @@ process align_and_qsFilter {
         path mmi_reference
         path reference
         path reads
+        val qscore_filter
     output:
         // NOTE merge does not need an index if merging with region/BED (https://github.com/samtools/samtools/blob/969d44990df7fa9c7bda3a7140a2c1d1bd8c62a0/bam_sort.c#L1256-L1272)
         // so we can save a few cycles and just output the CRAM
@@ -142,10 +145,17 @@ process align_and_qsFilter {
         path("${reads.baseName}.fail.cram"), emit: fail
     script:
     // bonito doesn't do qs tag -- just convert to cram
-    def filter = params.use_bonito ? "" : "-e '[qs] >= ${params.qscore_filter}'"
+    def filter = params.use_bonito ? "" : "-e '[qs] >= ${qscore_filter}'"
+    String reset_cmd_body = "samtools reset -x tp,cm,s1,s2,NM,MD,AS,SA,ms,nn,ts,cg,cs,dv,de,rl"
+    String fastq_cmd_body = "samtools fastq -T 1"
     """
-    samtools bam2fq -@ ${params.ubam_bam2fq_threads} -T 1 ${reads} \
-        | minimap2 -y -t ${params.ubam_map_threads} -ax map-ont ${mmi_reference} - \
+    samtools view -H --no-PG ${reads} > reads.header
+    ${reset_cmd_body} --no-PG ${reads} -o - \
+        | ${fastq_cmd_body} -@ ${params.ubam_bam2fq_threads} - \
+        | minimap2 -y -t ${params.ubam_map_threads} -a -x lr:hq --cap-kalloc 100m --cap-sw-mem 50m ${mmi_reference} - \
+        | workflow-glue reheader_samstream reads.header \
+             --insert \$'@PG\\tID:reset\\tPN:samtools\\tCL:${reset_cmd_body}' \
+             --insert \$'@PG\\tID:fastq\\tPN:samtools\\tCL:${fastq_cmd_body}' \
         | samtools sort -@ ${params.ubam_sort_threads} \
         | samtools view ${filter} \
               --output ${reads.baseName}.pass.cram \
@@ -159,15 +169,18 @@ process qsFilter {
     label "wf_basecalling"
     cpus 2
     memory 16.GB
-    log.warn("Reads are not filtered when using bonito.")
     input:
         path reads
+        val qscore_filter
     output:
         path("${reads.baseName}.pass.cram"), emit: pass
         path("${reads.baseName}.fail.cram"), emit: fail
     script:
     // bonito doesn't do qs tag -- just convert to cram
-    def filter = params.use_bonito ? "" : "-e '[qs] >= ${params.qscore_filter}'"
+    def filter = params.use_bonito ? "" : "-e '[qs] >= ${qscore_filter}'"
+    if (params.use_bonito) {
+        log.warn("Reads are not filtered when using bonito.")
+    }
     """
     samtools view ${filter} ${reads} \
         --output ${reads.baseName}.pass.cram \
@@ -175,22 +188,6 @@ process qsFilter {
         -O CRAM
     """
 }
-
-
-process make_mmi {
-    label "wf_basecalling"
-    cpus 4
-    memory 16.GB
-    input:
-        path(ref)
-    output:
-        path("ref.mmi")
-    script:
-    """
-    minimap2 -t ${task.cpus} -x map-ont -d ref.mmi ${ref}
-    """
-}
-
 
 
 // Compute summaries from the raw unmapped bam files
@@ -263,15 +260,20 @@ process split_calls {
         path(cram)
     output:
         path("demuxed/*")
-    shell:
+    script:
     if (params.fastq_only) {
         fastq_str = "--emit-fastq"
     } else {
         fastq_str = ""
     }
+    
+    // CW-4509: as described [here](https://github.com/nanoporetech/dorado#Demultiplexing-mapped-reads)
+    // to preserve mapping information when demuxing, we need to ask for
+    // `--no-trim`. Being aligned, it is also worth ask for it to be sorted/indexed.
+    def is_aligned = params.ref ? "--no-trim --sort-bam" : ""
 
     """
-    dorado demux ${fastq_str} --output-dir demuxed --no-classify ${cram}
+    dorado demux ${fastq_str} --output-dir demuxed ${is_aligned} --no-classify ${cram}
     """
 }
 
@@ -285,32 +287,12 @@ workflow wf_dorado {
         // determine output extentions
         def align_ext = "cram"
         def index_ext = "crai"
-        if (margs.output_bam) {
+        if (margs.output_fmt == "bam") {
             align_ext = "bam"
             index_ext = "bai"
         }
         output_exts = Channel.of([align_ext, index_ext]).collect()
-
-        if (margs.input_ref) {
-            if (margs.fastq_only) {
-                log.warn "Ignoring request to output FASTQ as you have provided a reference for alignment."
-            }
-            // create value channel of ref by calling first
-            ref = Channel.fromPath(margs.input_ref, checkIfExists: true).first()
-        }
-        else {
-            ref = file("${projectDir}/data/OPTIONAL_FILE")
-        }
         
-        // Deal with a Poly(A) configs. If config is present then turn on Poly(A) calling
-        Boolean do_estimate_poly_a = false
-        if (margs.poly_a_config ){
-            poly_a_config = file(margs.poly_a_config, checkIfExists: true)
-            do_estimate_poly_a = true
-        } else {
-            poly_a_config = file("${projectDir}/data/OPTIONAL_FILE")
-        }
-
         // Munge models
         // I didn't want to use the same trick from wf-humvar as I thought the models here are much larger
         // ...they aren't, but nevermind this is less hilarious than the humvar way
@@ -427,8 +409,7 @@ workflow wf_dorado {
                 ready_pod5_chunks,
                 tuple(margs.basecaller_model_name, basecaller_model, basecaller_model_override),
                 tuple(margs.remora_model_name, remora_model, remora_model_override),
-                do_estimate_poly_a,
-                poly_a_config
+                margs.poly_a_config
             )
         }
 
@@ -441,28 +422,25 @@ workflow wf_dorado {
         }
 
         // Run filtering or mapping
-        if (margs.input_ref) {
-            // make mmi for faster alignment
-            mmi_ref = make_mmi(ref)
-
+        if (margs.run_alignment) {
             // align, qscore_filter and sort
-            crams = align_and_qsFilter(mmi_ref, ref, called_bams.ubams)
+            crams = align_and_qsFilter(margs.input_mmi, margs.input_ref, called_bams.ubams, margs.qscore_filter)
         }
         else {
             // skip alignment and just collate pass and fail
-            crams = qsFilter(called_bams.ubams)
+            crams = qsFilter(called_bams.ubams, margs.qscore_filter)
         }
 
         // merge passes and fails
         // we've aliased the merge_calls process to save writing some unpleasant looking flow
         // FASTQ output can only be used when there is no input_ref
-        if (margs.fastq_only && !margs.input_ref) {
+        if (margs.output_fmt == "fastq" && !margs.run_alignment) {
             pass = merge_pass_calls_to_fastq(crams.pass.collect(), "pass")
             fail = merge_fail_calls_to_fastq(crams.fail.collect(), "fail")
         }
         else {
-            pass = merge_pass_calls(ref, crams.pass.collect(), "pass", output_exts)
-            fail = merge_fail_calls(ref, crams.fail.collect(), "fail", output_exts)
+            pass = merge_pass_calls(margs.input_ref, crams.pass.collect(), "pass", output_exts)
+            fail = merge_fail_calls(margs.input_ref, crams.fail.collect(), "fail", output_exts)
         }
         if (params.barcode_kit) {
             // this will output into the following structure
@@ -473,7 +451,7 @@ workflow wf_dorado {
             // │   └── reads.bam
             // └── unclassified
             //     └── reads.bam
-            barcode_bams = split_calls(pass)
+            barcode_bams = split_calls(pass, margs.input_cache)
         } else {
             barcode_bams = Channel.empty()
         }

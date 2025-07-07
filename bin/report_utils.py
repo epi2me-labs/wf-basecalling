@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Create tables for the report."""
+from bokeh.models import Title
 from ezcharts.plots.distribution import histplot
 import pandas as pd
 
@@ -21,10 +22,14 @@ def read_quality_plot(seq_summary, min_qual=4, max_qual=30, title='Read quality'
         bins=len(df),
         weights=list(df['counts'])
         )
-    plt.title = dict(text=title)
-    plt.xAxis.name = 'Quality score'
-    plt.xAxis.min, plt.xAxis.max = min_qual, max_qual
-    plt.yAxis.name = 'Number of reads'
+    plt._fig.add_layout(
+        Title(text=title, text_font_size="1.5em"),
+        'above'
+    )
+    plt._fig.xaxis.axis_label = "Quality score"
+    plt._fig.yaxis.axis_label = "Number of reads"
+    plt._fig.x_range.start = min_qual
+    plt._fig.x_range.end = max_qual
     return plt
 
 
@@ -38,7 +43,11 @@ def read_length_plot(seq_summary, title='Read length'):
         data=df['read_length'],
         bins=len(df),
         weights=list(df['counts']))
-    plt.title = dict(text=title)
-    plt.xAxis.name = 'Read length / kb'
-    plt.yAxis.name = 'Number of reads'
+    plt._fig.add_layout(
+        Title(text=title, text_font_size="1.5em"),
+        'above'
+    )
+    plt._fig.x_range.start = 0
+    plt._fig.xaxis.axis_label = "Read length / kb"
+    plt._fig.yaxis.axis_label = "Number of reads"
     return plt

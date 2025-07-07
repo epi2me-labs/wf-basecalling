@@ -38,6 +38,7 @@ To select the relevant model see the `dorado` repository for a [table of availab
 ### 3. Aligning to a reference
 
 The workflow can optionally perform the alignment of the basecalled data using [minimap2](https://github.com/lh3/minimap2) to a reference of choice, provided with the `--ref` option.
+Additionally, the workflow will generate an IGV configuration file. This file allows the user to view the filtered aligned BAM in the EPI2ME Desktop Application in the Viewer tab.
 
 ### 4. Duplex calling
 
@@ -47,3 +48,9 @@ Since `dorado duplex` requires the inputs to be in `pod5` format, the workflow w
 ### 5. Real-time analysis
 
 wf-basecalling can perform the basecalling as the pod5 files are generated. To enable this, provide the `--watch_path` option. The workflow will process the newly generated files as soon as they become available.
+
+### 6. Barcode classification and demultiplexing
+
+wf-basecalling can perform data demultiplexing by providing the appropriate barcoding kit with the `--barcode_kit` option.
+This will generate a new `{{ out_dir }}/demuxed` directory, with one subfolder for each barcode and one additional `unclassified` folder for reads that cannot be demultiplexed. This option is not available for `dorado duplex`.
+Please note that the demultiplexed reads will always be in BAM format, even when the user sets `--output_bam false`.

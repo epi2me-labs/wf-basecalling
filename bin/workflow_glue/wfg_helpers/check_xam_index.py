@@ -5,7 +5,7 @@ import sys
 
 import pysam
 
-from .util import get_named_logger, wf_parser  # noqa: ABS101
+from ..util import get_named_logger, wf_parser  # noqa: ABS101
 
 
 def validate_xam_index(xam_file):
@@ -14,12 +14,12 @@ def validate_xam_index(xam_file):
     Invalid indexes will fail the call with a ValueError:
     ValueError: fetch called on bamfile without index
     """
-    alignments = pysam.AlignmentFile(xam_file, check_sq=False)
-    try:
-        alignments.fetch()
-        has_valid_index = True
-    except ValueError:
-        has_valid_index = False
+    with pysam.AlignmentFile(xam_file, check_sq=False) as alignments:
+        try:
+            alignments.fetch()
+            has_valid_index = True
+        except ValueError:
+            has_valid_index = False
     return has_valid_index
 
 
@@ -38,6 +38,6 @@ def main(args):
 
 def argparser():
     """Argument parser for entrypoint."""
-    parser = wf_parser("check_bam_headers")
+    parser = wf_parser("check_xam_index")
     parser.add_argument("input_xam", type=Path, help="Path to target XAM")
     return parser

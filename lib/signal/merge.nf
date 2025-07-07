@@ -15,7 +15,7 @@ process merge_calls {
     script:
     def ref_arg = ref.name != "OPTIONAL_FILE" ? "--reference ${ref}" : ""
     """
-    samtools merge "${params.sample_name}.${filetag}.${align_ext}##idx##${params.sample_name}.${filetag}.${align_ext}.${index_ext}" ${crams} --no-PG -O ${align_ext} --write-index ${ref_arg} --threads ${task.cpus}
+    samtools merge -c -p "${params.sample_name}.${filetag}.${align_ext}##idx##${params.sample_name}.${filetag}.${align_ext}.${index_ext}" ${crams} --no-PG -O ${align_ext} --write-index ${ref_arg} --threads ${task.cpus}
     """
 }
 
@@ -30,6 +30,6 @@ process merge_calls_to_fastq {
         path("${params.sample_name}.${filetag}.fq.gz")
     script:
     """
-    samtools merge ${crams} --no-PG -O CRAM -@ ${params.merge_threads} -o - | samtools bam2fq -T 1 -@ ${params.ubam_bam2fq_threads} -0 ${params.sample_name}.${filetag}.fq.gz -
+    samtools merge -c -p ${crams} --no-PG -O CRAM -@ ${params.merge_threads} -o - | samtools bam2fq -T 1 -@ ${params.ubam_bam2fq_threads} -0 ${params.sample_name}.${filetag}.fq.gz -
     """
 }
