@@ -43,7 +43,7 @@ process dorado {
     // Targetting g5.2xlarge (8 CPU, 32 GB, 1 A10G) and g5.12xlarge (64 CPU, 192 GB, 4 A10G)
     accelerator 1 // further configuration should be overloaded using withLabel:gpu
     cpus 8
-    memory 32.GB
+    memory "29.3GB"
     input:
         tuple val(chunk_idx), path('*')
         tuple val(basecaller_cfg), path("dorado_model"), val(basecaller_model_override)
@@ -100,7 +100,7 @@ process bonito {
     // Targetting g5.2xlarge (8 CPU, 32 GB, 1 A10G) and g5.12xlarge (64 CPU, 192 GB, 4 A10G)
     accelerator 1 // further configuration should be overloaded using withLabel:gpu
     cpus 8
-    memory 32.GB
+    memory "29.3GB"
     input:
         tuple val(chunk_idx), path('*')
         tuple val(basecaller_cfg), path("bonito_model"), val(basecaller_model_override)
@@ -132,7 +132,7 @@ process bonito {
 process align_and_qsFilter {
     label "wf_basecalling"
     cpus {params.ubam_map_threads + params.ubam_sort_threads + params.ubam_bam2fq_threads}
-    memory 32.GB
+    memory "29.3GB"
     input:
         path mmi_reference
         path reference
@@ -168,7 +168,7 @@ process align_and_qsFilter {
 process qsFilter {
     label "wf_basecalling"
     cpus 2
-    memory 16.GB
+    memory "14.4GB"
     input:
         path reads
         val qscore_filter
@@ -194,6 +194,7 @@ process qsFilter {
 process dorado_summary {
     label "wf_basecalling"
     cpus 1
+    memory "14.4GB"  //TODO: may be a little excessive?
     input:
         path xam // chunks are always CRAM
     output:
@@ -209,6 +210,7 @@ process dorado_summary {
 process combine_dorado_summaries {
     label "wf_basecalling"
     cpus 1
+    memory "1GB"
     input:
         path tsvs // individual summaries
     output:
@@ -232,6 +234,7 @@ process split_calls {
     label "wf_basecalling"
     label "wf_dorado"
     cpus 1
+    memory "14.4GB"
     publishDir "${params.out_dir}/demuxed",
         mode: 'copy',
         pattern: "demuxed/*.bam",
