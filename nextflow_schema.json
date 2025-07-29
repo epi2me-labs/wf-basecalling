@@ -72,7 +72,8 @@
                 },
                 "store_dir": {
                     "type": "string",
-                    "hidden": true
+                    "hidden": true,
+                    "format": "directory-path"
                 }
             }
         },
