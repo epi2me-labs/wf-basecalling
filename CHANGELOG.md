@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Memory requirements reduced to account for cloud instances expressing capacity in GiB.
 
+### Fixed
+- `store_dir` parameter format incorrectly declared in the schema. This does not affect this workflow as it does not use the storeDir directive and has been changed to maintain compliance with our latest testing standard.
+
 ## [v1.5.3]
 This release of wf-basecalling is made to support the development of other EPI2ME workflows that handle their own Poly(A) configuration. Users do not need to adopt this release.
 ### Changed
