@@ -11,11 +11,13 @@ process merge_calls {
         val(filetag)
         tuple val(align_ext), val(index_ext) // either [bam, bai] or [cram, crai]
     output:
-        tuple path("${params.sample_name}.${filetag}.${align_ext}"), path("${params.sample_name}.${filetag}.${align_ext}.${index_ext}")
+        tuple path("${out_file}"), path("${out_index}")
     script:
-    def ref_arg = ref.name != "OPTIONAL_FILE" ? "--reference ${ref}" : ""
+    out_file = "${params.sample_name}.${filetag}.${align_ext}"  // nodef used in output 
+    out_index = "${out_file}.${index_ext}"  // nodef used in output 
+    def ref_arg = ref.name != "OPTIONAL_FILE" ? "--reference \"${ref}\"" : ""
     """
-    samtools merge -c -p "${params.sample_name}.${filetag}.${align_ext}##idx##${params.sample_name}.${filetag}.${align_ext}.${index_ext}" ${crams} --no-PG -O ${align_ext} --write-index ${ref_arg} --threads ${task.cpus}
+    samtools merge -c "${out_file}##idx##${out_index}" ${crams} --no-PG -O ${align_ext} --write-index ${ref_arg} --threads ${task.cpus}
     """
 }
 
@@ -24,12 +26,13 @@ process merge_calls_to_fastq {
     cpus { params.merge_threads + params.ubam_bam2fq_threads }
     memory 16.GB
     input:
-        path(crams)
+        path(crams, stageAs: "filtered_*.cram")
         val(filetag)
     output:
-        path("${params.sample_name}.${filetag}.fq.gz")
+        path(fq_file)
     script:
+    fq_file = "${params.sample_name}.${filetag}.fq.gz"  // nodef used in output 
     """
-    samtools merge -c -p ${crams} --no-PG -O CRAM -@ ${params.merge_threads} -o - | samtools bam2fq -T 1 -@ ${params.ubam_bam2fq_threads} -0 ${params.sample_name}.${filetag}.fq.gz -
+    samtools merge -c ${crams} --no-PG -O CRAM -@ ${params.merge_threads} -o - | samtools bam2fq -T 1 -@ ${params.ubam_bam2fq_threads} -0 "${fq_file}" -
     """
 }

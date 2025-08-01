@@ -237,30 +237,33 @@ process split_calls {
     memory "14.4GB"
     publishDir "${params.out_dir}/demuxed",
         mode: 'copy',
-        pattern: "demuxed/*.bam",
+        pattern: "demuxed/*.${output_extension}",
         saveAs: { fn ->
-            if (fn.endsWith("unclassified.bam")) {
-                "unclassified/reads.bam"
+            if (fn.endsWith("unclassified.${output_extension}")) {
+                "unclassified/reads.${output_extension}"
             }
-            else if (fn.endsWith("mixed.bam")) {
-                "mixed/reads.bam"
+            else if (fn.endsWith("mixed.${output_extension}")) {
+                "mixed/reads.${output_extension}"
             }
             else {
-                "${fn.replace("demuxed/${params.barcode_kit}_","").replace(".bam","")}/reads.bam"
+                "${fn.replace("demuxed/${params.barcode_kit}_","").replace(".${output_extension}","")}/reads.${output_extension}"
             }
         }
     input:
-        tuple path(cram), path(crai)
+        path(cram, stageAs: "crams/*")
         tuple path(ref_cache), env(REF_PATH)
+        val output_fmt
     output:
-        path("demuxed/*.bam")
+        path("demuxed/*.${output_extension}")
     script:
     // CW-4509: as described [here](https://github.com/nanoporetech/dorado#Demultiplexing-mapped-reads)
     // to preserve mapping information when demuxing, we need to ask for
     // `--no-trim`. Being aligned, it is also worth ask for it to be sorted/indexed.
     def is_aligned = params.ref ? "--no-trim --sort-bam" : ""
+    def emit_fastq = output_fmt == "fastq" ? "--emit-fastq" : ""
+    output_extension = output_fmt == "fastq" ? "fastq" : "bam"  // nodef: used in output
     """
-    dorado demux --output-dir demuxed ${is_aligned} --no-classify ${cram}
+    dorado demux --output-dir demuxed ${is_aligned} ${emit_fastq} --no-classify --recursive crams
     """
 }
 
@@ -438,7 +441,7 @@ workflow wf_dorado {
             // │   └── reads.bam
             // └── unclassified
             //     └── reads.bam
-            barcode_bams = split_calls(pass, margs.input_cache)
+            barcode_bams = split_calls(crams.pass.collect(), margs.input_cache, margs.output_fmt)
         } else {
             barcode_bams = Channel.empty()
         }
