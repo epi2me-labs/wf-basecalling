@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - `store_dir` parameter format incorrectly declared in the schema. This does not affect this workflow as it does not use the storeDir directive and has been changed to maintain compliance with our latest testing standard.
+-  `Not a valid path value type: org.codehaus.groovy.runtime.NullObject (null)` when demuxing and outputting FASTQ without performing alignment. FASTQ is now correctly demuxed into the expected folder output. 
 
 ## [v1.5.3]
 This release of wf-basecalling is made to support the development of other EPI2ME workflows that handle their own Poly(A) configuration. Users do not need to adopt this release.
