@@ -1,4 +1,4 @@
-# Basecalling workflow
+# Basecalling
 
 Helper workflow for basecalling nanopore sequencing data.
 
