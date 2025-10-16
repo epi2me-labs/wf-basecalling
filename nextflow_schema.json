@@ -2,7 +2,7 @@
     "$schema": "http://json-schema.org/draft-07/schema",
     "$id": "https://raw.githubusercontent.com/epi2me-labs/wf-basecalling/master/nextflow_schema.json",
     "title": "epi2me-labs/wf-basecalling",
-    "workflow_title": "Basecalling workflow",
+    "workflow_title": "Basecalling",
     "description": "Helper workflow for basecalling nanopore sequencing data.",
     "demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demo.tar.gz",
     "aws_demo_url": "https://ont-exd-int-s3-euwst1-epi2me-labs.s3.amazonaws.com/wf-basecalling/wf-basecalling-demo/aws.nextflow.config",
