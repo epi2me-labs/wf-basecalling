@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.5.5]
+This patch release of `wf-basecalling` updates internal workflow naming, and does not affect any workflow outputs.
+### Changed
+- Removed workflow suffix from workflow title.
+
 ## [v1.5.4]
 This patch update to wf-basecalling fixes the "Not a valid path value type" error observed by some users when demultiplexing, and updates Dorado to v1.1.1 to benefit from improved HAC basecalling speed. It is recommended that users update to this version to keep up to date with Dorado's model and basecalling performance improvements.
 
