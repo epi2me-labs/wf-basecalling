@@ -237,24 +237,18 @@ process split_calls {
     memory "14.4GB"
     publishDir "${params.out_dir}/demuxed",
         mode: 'copy',
-        pattern: "demuxed/*.${output_extension}",
+        pattern: "demuxed/**/*.${output_extension}",
         saveAs: { fn ->
-            if (fn.endsWith("unclassified.${output_extension}")) {
-                "unclassified/reads.${output_extension}"
-            }
-            else if (fn.endsWith("mixed.${output_extension}")) {
-                "mixed/reads.${output_extension}"
-            }
-            else {
-                "${fn.replace("demuxed/${params.barcode_kit}_","").replace(".${output_extension}","")}/reads.${output_extension}"
-            }
+            // Input: demuxed/sample_id/run_id/fastq_pass/barcode01/file.fastq
+            // Output: sample_id/run_id/fastq_pass/barcode01/file.fastq
+            fn.replaceFirst("demuxed/", "")
         }
     input:
         path(cram, stageAs: "crams/*")
         tuple path(ref_cache), env(REF_PATH)
         val output_fmt
     output:
-        path("demuxed/*.${output_extension}")
+        path("demuxed/**/*.${output_extension}")
     script:
     // CW-4509: as described [here](https://github.com/nanoporetech/dorado#Demultiplexing-mapped-reads)
     // to preserve mapping information when demuxing, we need to ask for
@@ -433,14 +427,6 @@ workflow wf_dorado {
             fail = merge_fail_calls(margs.input_ref, crams.fail.collect(), "fail", output_exts)
         }
         if (params.barcode_kit) {
-            // this will output into the following structure
-            // output/demuxed/
-            // ├── barcode01
-            // │   └── reads.bam
-            // ├── barcode09
-            // │   └── reads.bam
-            // └── unclassified
-            //     └── reads.bam
             barcode_bams = split_calls(crams.pass.collect(), margs.input_cache, margs.output_fmt)
         } else {
             barcode_bams = Channel.empty()
