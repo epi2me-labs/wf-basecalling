@@ -166,7 +166,7 @@ docker-run:
              AFTER_NEXTFLOW_CMD: |
               MISSING_FILES=();
               for BARCODE in barcode{01..96}; do
-                FILE=wf-basecalling/demuxed/demuxed/26cdc4c3-c4ca-49a7-a167-8679dace0e2d_SQK-RBK114-96_$${BARCODE}/reads.fastq;
+                FILE=wf-basecalling/demuxed/sample_id_1/20231116_1732_0_FAY10281_26cdc4c3/fastq_pass/$${BARCODE}/FAY10281_pass_$${BARCODE}_26cdc4c3_00000000_0.fastq;
                 [ -f $${FILE} ] || MISSING_FILES+=("$${FILE}");
               done;
               if [ $${#MISSING_FILES[@]} -ne 0 ]; then

@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Pipeline overview now appears before pipeline parameters in README.
   - ezCharts plotting library has been updated to 0.15.1, there are no user facing changes to plots.
   - Fastcat FASTQ pre-processing program has been updated to 0.24.2, it is more robust to malformed FASTQ input.
+- Updated to Dorado [v1.3.0](https://github.com/nanoporetech/dorado/releases/tag/v1.3.0).
+  - Files output by `dorado demux` are now organized into subdirectories following the structure `demuxed/sample_id/run_id/bam_pass/barcode_id/file.bam`.
 
 ## [v1.5.5]
 This patch release of `wf-basecalling` updates internal workflow naming, and does not affect any workflow outputs.
