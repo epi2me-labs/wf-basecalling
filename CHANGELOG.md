@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Pipeline overview now appears before pipeline parameters in README.
   - ezCharts plotting library has been updated to 0.15.1, there are no user facing changes to plots.
   - Fastcat FASTQ pre-processing program has been updated to 0.24.2, it is more robust to malformed FASTQ input.
+  - CHANGELOG to be compliant with our formatting rules.
 - Updated to Dorado [v1.3.0](https://github.com/nanoporetech/dorado/releases/tag/v1.3.0).
   - Files output by `dorado demux` are now organized into subdirectories following the structure `demuxed/sample_id/run_id/bam_pass/barcode_id/file.bam`.
 
@@ -134,7 +135,7 @@ Users do not need to update to this release.
 - Updated Dorado to v0.7.2 (see https://github.com/nanoporetech/dorado/releases/tag/v0.7.2)
 
 ## [v1.2.2]
-### Changes
+### Changed
 - Bug fix for downstream workflows and `--poly_a_config` which does not affect normal workflow use.
 
 ## [v1.2.1]
@@ -142,7 +143,7 @@ Users do not need to update to this release.
 - Output channel for demuxed BAM files for downstream use.
 
 ## [v1.2.0]
-### Added
+### Added
 - Support for `dorado demux` to demultiplex barcoded runs. Specify your `--barcode_kit` to activate demultiplexing.
 - Support for poly(a) tail length estimation with `--poly_a_config`. You can configure by providng a TOML file to `--poly_a_config` which is described in detail [here](https://github.com/nanoporetech/dorado?tab=readme-ov-file#polya-tail-estimation)
 ### Changed
@@ -194,7 +195,7 @@ Users do not need to update to this release.
 - Reintroduced RNA002 models
 
 ## [v1.1.0]
-### [Added]
+### Added
 - `--duplex` basecalling converts FAST5 to POD5 automatically
     - Converted POD5 files are deleted by default, use `--output_pod5` to output converted POD5 files to the workflow output directory.
 
@@ -334,8 +335,8 @@ Users do not need to update to this release.
     - Ensure to set `--dorado_ext` to `fast5` or `pod5` as appropriate
 
 ## [v0.0.1]
-* Initial release of wf-basecalling supporting the Dorado basecaller
+Initial release of wf-basecalling supporting the Dorado basecaller
 
 ## [v0.0.0]
-* Initialised wf-basecalling from wf-template #30ff92d
+Initialised wf-basecalling from wf-template #30ff92d
 
