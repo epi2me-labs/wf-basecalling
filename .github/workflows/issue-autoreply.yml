@@ -7,3 +7,4 @@ on:
 jobs:
   auto-reply:
     uses: epi2me-labs/.github/.github/workflows/issue-autoreply.yml@main
+
