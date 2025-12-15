@@ -5,8 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [v1.5.7]
+This patch release of wf-basecalling permits additional kit names for demultiplexing. The version of Dorado and its models are unchanged.
+
 ### Changed
 - Updated to wf-template v5.7.0 to maintain compliance with our latest wf-template standard. This has no effect on the workflow.
+### Added
+- `barcode_kit` now permits `SQK-MAB114-24`, `EXP-NBD114-24`, `SQK-DRB004-24`, and `SQK-HTB114-96` to enable Dorado demultiplexing of data generated with them.
 
 ## [v1.5.6]
 ### Changed
