@@ -262,30 +262,6 @@
                     ]
                 }
             },
-            "dependencies": {
-                "duplex": {
-                    "allOf": [
-                        {
-                            "not": {
-                                "required": [
-                                    "barcode_kit"
-                                ]
-                            }
-                        }
-                    ]
-                },
-                "barcode_kit": {
-                    "allOf": [
-                        {
-                            "not": {
-                                "required": [
-                                    "duplex"
-                                ]
-                            }
-                        }
-                    ]
-                }
-            },
             "allOf": [
                 {
                     "required": [
@@ -305,6 +281,22 @@
                             ]
                         }
                     ]
+                },
+                {
+                    "not": {
+                        "allOf": [
+                            {
+                                "properties": {
+                                    "duplex": {
+                                        "const": true
+                                    }
+                                }
+                            },
+                            {
+                                "required": ["barcode_kit"]
+                            }
+                        ]
+                    }
                 }
             ]
         },
