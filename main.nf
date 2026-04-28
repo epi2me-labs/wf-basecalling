@@ -166,7 +166,7 @@ process makeReport {
     output:
         path "wf-basecalling-*.html"
     script:
-        String report_name = "wf-basecalling-report.html"
+        String report_name = "wf-basecalling-report-${task.index}.html"
         def report_pairings = params.duplex ? "--pairings ${pairings}/*" : ""
     """
     report.py $report_name \
@@ -214,7 +214,7 @@ process stopCondition {
 process output_stream {
     // publish inputs to output directory
     label "wf_basecalling"
-    publishDir "${params.out_dir}", mode: 'copy', pattern: "*"
+    publishDir "${params.out_dir}/stream/", mode: 'copy', pattern: "*"
     input:
         path fname
     output:
@@ -232,9 +232,12 @@ process output_last {
     input:
         path fname
     output:
-        path fname
+        path "wf-basecalling-*.html"
+    script:
+        String report_name = "wf-basecalling-report.html"
     """
     echo "Writing output files."
+    mv ${fname} ${report_name}
     """
 }
 
